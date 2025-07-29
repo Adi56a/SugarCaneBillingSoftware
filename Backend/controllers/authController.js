@@ -34,34 +34,36 @@ const registerAdmin = async (req, res) => {
     }
 };
 
-const loginAdmin  = async (req,res) => {
-    const {username  , password} = req.body;
+const loginAdmin = async (req, res) => {
+    const { username, password } = req.body;
 
-  try {
-    const admin = await Admin.findOne({username});
+    try {
+        const admin = await Admin.findOne({ username });
 
-    if(!admin){
-        return res.status(400).json({message : "Admin Not Found"});
+        if (!admin) {
+            return res.status(400).json({ message: "Admin Not Found" });
+        }
+
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid Credentials" });
+        }
+
+        // Set token expiration to 20 days
+        const token = jwt.sign(
+            { id: admin._id, username: admin.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '20d' } // Token expires in 20 days
+        );
+
+        res.status(200).json({
+            message: "Login Successful",
+            token,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error logging in Admin" });
     }
-
-    const isMatch = await bcrypt.compare(password , admin.password);
-    if(!isMatch){
-        return res.status(400).json({message:"Invalid Credentials"});
-    }
-
-    const token = jwt.sign(
-        {id : admin._id , username : admin.username},
-        process.env.JWT_SECRET,
-        {expiresIn : '1h'}
-    );
-
-    res.status(200).json({
-        message:"Login Successfull", 
-        token,
-    });
-  } catch (error) {
-    res.status(500).json({message: "error logging in Admin"})
-  }
 };
+
 
 module.exports = { registerAdmin , loginAdmin};
