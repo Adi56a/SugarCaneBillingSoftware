@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db')
 const bodyParser  = require('body-parser')
 const adminRoutes  = require('./routes/adminRoute')
+const farmerRoutes = require('./routes/farmerRoute')
 
 
 
@@ -21,6 +22,7 @@ app.use(express.json())
 
 
 app.use('/api/admin', adminRoutes)
+app.use('/api/farmer', farmerRoutes)
 
 
 app.get('/',(req,res) => {
