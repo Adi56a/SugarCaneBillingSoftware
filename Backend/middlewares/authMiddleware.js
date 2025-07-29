@@ -1,21 +1,36 @@
-const jwt  = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
-const verifyAdmin  = (req,res,next) => {
-    const token  = req.header('Authorization');
+const verifyAdmin = (req, res, next) => {
+    // Get the Authorization header from the request
+    const token = req.header('Authorization');
 
-    if(!token){
-        return res.status(401).json({message : "No token , Auth Denided by middle ware"})
+    if (!token) {
+        // If the token is missing, respond with an error
+        return res.status(401).json({ message: "No token provided, authorization denied." });
     }
+
+    // Check if token starts with 'Bearer' and extract the token
+    if (!token.startsWith('Bearer ')) {
+        return res.status(400).json({ message: "Token format is incorrect. Expected 'Bearer <token>'." });
+    }
+
+    // Extract the actual token by removing the 'Bearer ' part
+    const actualToken = token.split(' ')[1];
 
     try {
-        const decoded  = jwt.verify(token , process.env.JWT_SECRET);
+        // Verify the token with the secret key stored in the environment variable
+        const decoded = jwt.verify(actualToken, process.env.JWT_SECRET);
 
-        req.user = decoded; 
+        // Attach decoded user data to the request object for use in other routes
+        req.user = decoded;
 
+        // Move to the next middleware or route handler
         next();
     } catch (error) {
-        res.status(400).json({message: "Invalid Token , middleware "})
+        // Handle invalid or expired token
+        console.error("Token verification failed:", error);
+        return res.status(400).json({ message: "Invalid or expired token." });
     }
-}
+};
 
 module.exports = verifyAdmin;
