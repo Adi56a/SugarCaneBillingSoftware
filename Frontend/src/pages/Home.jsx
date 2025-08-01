@@ -19,8 +19,7 @@ const Home = () => {
       {/* Include Header Component */}
       <Header />
 
-      <div className="min-h-screen bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 text-white font-sans pt-20"> {/* Added pt-20 for padding top */}
-        
+      <div className="min-h-screen bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 text-white font-sans pt-20">
         {/* Main Content Section */}
         <div className="flex flex-col items-center justify-start space-y-6 py-20">
 
@@ -30,7 +29,7 @@ const Home = () => {
           </h1>
 
           {/* Options Section */}
-          <div className="bg-white text-gray-900 p-10 rounded-3xl shadow-xl max-w-2xl w-full transform transition hover:scale-105 duration-300">
+          <div className="bg-white text-gray-900 p-10 rounded-3xl shadow-xl max-w-2xl w-full transform transition hover:scale-101 duration-300">
             <h2 className="text-4xl text-center font-semibold mb-8">
               {language === 'en' ? 'Select Billing Type' : 'बिलिंग प्रकार निवडा'}
             </h2>
@@ -52,6 +51,16 @@ const Home = () => {
                 className="block text-2xl text-indigo-600 font-semibold text-center py-3 px-6 rounded-lg shadow-md hover:bg-indigo-100 transition duration-200"
               >
                 {language === 'en' ? 'Selling Billing' : 'विक्री बिलिंग'}
+              </Link>
+            </div>
+
+            {/* Farmer Registration Option */}
+            <div className="mt-6 hover:shadow-xl transition-all ease-in-out duration-300">
+              <Link
+                to="/farmer_register" // Redirect to farmer registration page
+                className="block text-2xl text-indigo-600 font-semibold text-center py-3 px-6 rounded-lg shadow-md hover:bg-indigo-100 transition duration-200"
+              >
+                {language === 'en' ? 'Farmer Registration' : 'शेतकरी नोंदणी'}
               </Link>
             </div>
           </div>
