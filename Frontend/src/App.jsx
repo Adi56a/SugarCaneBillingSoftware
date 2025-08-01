@@ -7,6 +7,8 @@ import NotFound from './pages/NotFound';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
+import RegisterFarmer from './pages/RegisterFarmer';
+import FarmerBillingPage from './pages/FarmerBillingPage';
 
 const App = () => {
   return (
@@ -22,6 +24,22 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/farmer_register" 
+          element={
+            <ProtectedRoute>
+             <RegisterFarmer />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/farmer_billing" 
+          element={
+            <ProtectedRoute>
+             <FarmerBillingPage />
             </ProtectedRoute>
           } 
         />
