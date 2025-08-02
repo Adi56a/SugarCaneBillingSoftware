@@ -41,7 +41,7 @@ const billSchema  = new mongoose.Schema({
     required:true
   },
   binding_material:{
-    type:String,
+    type:Number,
     required:true
   },
   only_sugarcane_weight:{
@@ -63,6 +63,10 @@ const billSchema  = new mongoose.Schema({
   payment_type:{
     type:String,
     required:true
+  },
+  totalBill:{
+    type:Number,
+    require:true
   }
   },
 {timestamps:true});
