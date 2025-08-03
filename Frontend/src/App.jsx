@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
 import RegisterFarmer from './pages/RegisterFarmer';
 import FarmerBillingPage from './pages/FarmerBillingPage';
+import AllFarmerPage from './pages/AllFarmerPage';
 
 const App = () => {
   return (
@@ -43,6 +44,8 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+
+        <Route path='/all_farmer' element={<AllFarmerPage />} />
 
         {/* Other public routes */}
         <Route path="/about" element={<About />} />
