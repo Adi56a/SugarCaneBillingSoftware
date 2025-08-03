@@ -19,7 +19,8 @@ const createBill  = async (req,res) => {
       sugarcane_rate,
       given_money,
       remaining_money,
-      payment_type
+      payment_type,
+      totalBill
     } = req.body;
 
     const farmer  = await Farmer.findOne({farmer_number});
@@ -45,7 +46,8 @@ const createBill  = async (req,res) => {
       sugarcane_rate,
       given_money,
       remaining_money,
-      payment_type
+      payment_type,
+      totalBill
     });
 
     const savedBill = await newBill.save();
