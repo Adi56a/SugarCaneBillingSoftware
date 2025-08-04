@@ -44,8 +44,15 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/all_farmer" 
+          element={
+            <ProtectedRoute>
+             <AllFarmerPage />
+            </ProtectedRoute>
+          } 
+        />
 
-        <Route path='/all_farmer' element={<AllFarmerPage />} />
 
         {/* Other public routes */}
         <Route path="/about" element={<About />} />
