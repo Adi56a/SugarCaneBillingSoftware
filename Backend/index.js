@@ -7,6 +7,7 @@ const bodyParser  = require('body-parser')
 const adminRoutes  = require('./routes/adminRoute')
 const farmerRoutes = require('./routes/farmerRoute')
 const billRoutes = require('./routes/billRoute')
+const uploadRoutes  = require('./routes/upload')
 
 
 
@@ -21,7 +22,7 @@ app.use(express.json())
  connectDB()
 
 
-
+app.use('/api/upload',uploadRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/farmer', farmerRoutes)
 app.use('/api/bill',billRoutes)
