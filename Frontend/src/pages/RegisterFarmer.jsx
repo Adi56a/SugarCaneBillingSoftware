@@ -147,14 +147,21 @@ const RegisterFarmer = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/farmer/register', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ farmer_name: farmerName, farmer_number: farmerNumber })
-      });
+    const token = localStorage.getItem('authToken');
+
+    // Dynamically set the URL based on the environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/farmer/register' 
+      : 'https://your-production-url.com/api/farmer/register'; // Replace with your actual production URL
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ farmer_name: farmerName, farmer_number: farmerNumber })
+    });
 
       const data = await response.json();
 
