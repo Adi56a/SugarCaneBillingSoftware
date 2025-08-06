@@ -386,30 +386,31 @@ const uploadImageToCloudinary = async (imageBlob, fileName) => {
   };
 
   // FIXED: Enhanced WhatsApp share with proper phone formatting
-  const handleWhatsAppShare = async (bill) => {
-    try {
-      setImageGenerating(true);
-      showFlashMessage('🔄 Preparing bill for WhatsApp...', 'info');
+ // FIXED: Enhanced WhatsApp share with direct mobile app opening
+const handleWhatsAppShare = async (bill) => {
+  try {
+    setImageGenerating(true);
+    showFlashMessage('🔄 Preparing bill for WhatsApp...', 'info');
 
-      // Generate Image
-      const imageDataUrl = await generateImageFromBill(bill);
-      
-      // Convert to blob
-      const imageBlob = dataURLToBlob(imageDataUrl);
-      
-      // Create filename
-      const fileName = `bill_${farmerData.farmer_name.replace(/\s+/g, '_')}_${new Date(bill.createdAt).toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
-      
-      // Upload to Cloudinary
-      showFlashMessage('☁️ Uploading image...', 'info');
-      const imageUrl = await uploadImageToCloudinary(imageBlob, fileName);
+    // Generate Image
+    const imageDataUrl = await generateImageFromBill(bill);
+    
+    // Convert to blob
+    const imageBlob = dataURLToBlob(imageDataUrl);
+    
+    // Create filename
+    const fileName = `bill_${farmerData.farmer_name.replace(/\s+/g, '_')}_${new Date(bill.createdAt).toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
+    
+    // Upload to Cloudinary
+    showFlashMessage('☁️ Uploading image...', 'info');
+    const imageUrl = await uploadImageToCloudinary(imageBlob, fileName);
 
-      // Format phone number for WhatsApp
-      const formattedPhone = formatPhoneForWhatsApp(farmerData.farmer_number);
-      console.log('Original phone:', farmerData.farmer_number, 'Formatted phone:', formattedPhone);
+    // Format phone number for WhatsApp
+    const formattedPhone = formatPhoneForWhatsApp(farmerData.farmer_number);
+    console.log('Original phone:', farmerData.farmer_number, 'Formatted phone:', formattedPhone);
 
-      // Create WhatsApp message with Image URL
-      const message = `🧾 *Farmer Bill Details*
+    // Create WhatsApp message with Image URL
+    const message = `🧾 *Farmer Bill Details*
 
 📅 Date: ${new Date(bill.createdAt).toLocaleDateString('en-IN')}
 👨‍🌾 Farmer: ${farmerData.farmer_name}
@@ -429,25 +430,45 @@ ${imageUrl}
 
 Thank you for your business! 🙏`;
 
-      const encodedMessage = encodeURIComponent(message);
+    const encodedMessage = encodeURIComponent(message);
+    
+    // FIXED: Direct WhatsApp app opening for mobile devices
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+    
+    console.log('WhatsApp URL:', whatsappUrl);
+    
+    showFlashMessage('✅ Image ready! Opening WhatsApp...', 'success');
+    
+    // FIXED: Direct app opening logic for mobile devices
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // For mobile devices - try direct app opening first
+      const whatsappAppUrl = `whatsapp://send?phone=${formattedPhone}&text=${encodedMessage}`;
       
-      // FIXED: Use formatted phone number for WhatsApp
-      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+      // Try to open WhatsApp app directly
+      window.location.href = whatsappAppUrl;
       
-      console.log('WhatsApp URL:', whatsappUrl);
-      
-      showFlashMessage('✅ Image ready! Opening WhatsApp...', 'success');
-      
-      // Open WhatsApp with proper URL
+      // Fallback to web version after a short delay if app doesn't open
+      setTimeout(() => {
+        if (!document.hidden) {
+          // If still on the page, open web version
+          window.open(whatsappUrl, '_blank');
+        }
+      }, 2000);
+    } else {
+      // For desktop - open web WhatsApp in new tab
       window.open(whatsappUrl, '_blank');
-
-    } catch (error) {
-      console.error('WhatsApp share error:', error);
-      showFlashMessage('❌ Failed to prepare bill for WhatsApp', 'error');
-    } finally {
-      setImageGenerating(false);
     }
-  };
+
+  } catch (error) {
+    console.error('WhatsApp share error:', error);
+    showFlashMessage('❌ Failed to prepare bill for WhatsApp', 'error');
+  } finally {
+    setImageGenerating(false);
+  }
+};
+
 
   const handleDeleteBill = async (billId) => {
     if (!window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
