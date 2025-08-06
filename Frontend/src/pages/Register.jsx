@@ -23,14 +23,18 @@ const Register = () => {
     const userData = { username, password };
 
     try {
-      // POST request to your backend (replace the URL with your API endpoint)
-      const response = await fetch('http://localhost:5000/api/admin/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+    // Dynamically set the URL based on the environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/admin/register' 
+      : 'https://your-production-url.com/api/admin/register'; // Replace with your actual production URL
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
 
       const result = await response.json(); // Assuming the API returns a JSON response
 
