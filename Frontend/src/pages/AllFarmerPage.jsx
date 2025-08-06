@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import FarmerBuyingBill from '../components/FarmerBuyingBill'; // Import the bill component
+import * as htmlToImage from 'html-to-image';
 
 const AllFarmerPage = () => {
   const [farmerData, setFarmerData] = useState({
@@ -6,29 +8,57 @@ const AllFarmerPage = () => {
     farmer_name: '',
     bills: []
   });
-  const [farmersList, setFarmersList] = useState([]); // List of all farmers
-  const [filteredFarmers, setFilteredFarmers] = useState([]); // Filtered farmers for suggestions
+  const [farmersList, setFarmersList] = useState([]);
+  const [filteredFarmers, setFilteredFarmers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedFarmerId, setSelectedFarmerId] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [flashMessages, setFlashMessages] = useState([]);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [billToPrint, setBillToPrint] = useState(null);
+  const [language, setLanguage] = useState('en');
+  const [imageGenerating, setImageGenerating] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  
+  // Ref for image generation
+  const imagePreviewRef = useRef(null);
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const currentLang = localStorage.getItem('language') || 'en';
+      if (currentLang !== language) {
+        setLanguage(currentLang);
+      }
+    };
+
+    checkLanguage();
+    const interval = setInterval(checkLanguage, 500);
+    return () => clearInterval(interval);
+  }, [language]);
 
   // Fetch all farmers when the component mounts
   useEffect(() => {
     const fetchFarmers = async () => {
       setLoading(true);
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('http://localhost:5000/api/farmer/all', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+    try {
+    const token = localStorage.getItem('authToken');
+
+    // Check the environment and set the appropriate URL
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/farmer/all' 
+      : 'https://your-production-url.com/api/farmer/all'; // Replace with your production URL
+
+    const response = await fetch(baseUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
         const data = await response.json();
         
         if (response.ok && data.success) {
-          setFarmersList(data.data || []); // Set the farmers list from the response
+          setFarmersList(data.data || []);
           setError(null);
         } else {
           setError(data.message || 'Failed to fetch farmers');
@@ -44,28 +74,56 @@ const AllFarmerPage = () => {
     fetchFarmers();
   }, []);
 
-  // Auto-select farmer if coming from bill creation
+  // FIXED: Auto-select farmer if coming from bill creation
   useEffect(() => {
     const selectedFarmerNumber = localStorage.getItem('selectedFarmerNumber');
     const selectedFarmerName = localStorage.getItem('selectedFarmerName');
     
     if (selectedFarmerNumber && selectedFarmerName && farmersList.length > 0) {
-      const farmer = farmersList.find(f => f.farmer_number === selectedFarmerNumber);
+      console.log('Auto-selecting farmer:', { selectedFarmerNumber, selectedFarmerName });
+      
+      // Find farmer by number
+      const farmer = farmersList.find(f => 
+        f.farmer_number?.toString() === selectedFarmerNumber.toString()
+      );
+      
       if (farmer) {
+        console.log('Found farmer for auto-selection:', farmer);
         selectFarmer(farmer);
-        // Clear the stored data after using it
+        
+        // Clean up localStorage
         localStorage.removeItem('selectedFarmerNumber');
         localStorage.removeItem('selectedFarmerName');
         
-        // Show success message
         showFlashMessage(`✅ Showing bills for: ${selectedFarmerName}`, 'success', 3000);
+      } else {
+        console.log('Farmer not found in list for auto-selection');
+        
+        // If farmer not found, still set the data manually
+        setFarmerData({
+          farmer_number: selectedFarmerNumber,
+          farmer_name: selectedFarmerName,
+          bills: []
+        });
+        
+        // Try to find by name as fallback
+        const farmerByName = farmersList.find(f => 
+          f.farmer_name?.toLowerCase() === selectedFarmerName.toLowerCase()
+        );
+        
+        if (farmerByName) {
+          selectFarmer(farmerByName);
+        }
+        
+        localStorage.removeItem('selectedFarmerNumber');
+        localStorage.removeItem('selectedFarmerName');
       }
     }
-  }, [farmersList]);
+  }, [farmersList]); // This will run when farmersList is populated
 
-  // Flash message system
+  // Flash message system with unique IDs
   const showFlashMessage = (message, type, duration = 5000) => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newMessage = { id, message, type };
     
     setFlashMessages(prev => [...prev, newMessage]);
@@ -75,7 +133,6 @@ const AllFarmerPage = () => {
     }, duration);
   };
 
-  // Remove flash message manually
   const removeFlashMessage = (id) => {
     setFlashMessages(prev => prev.filter(msg => msg.id !== id));
   };
@@ -87,14 +144,13 @@ const AllFarmerPage = () => {
     setFarmerData((prev) => ({
       ...prev,
       farmer_number: value,
-      farmer_name: '', // Clear name when number changes
-      bills: [] // Clear bills when number changes
+      farmer_name: '',
+      bills: []
     }));
 
     setSelectedFarmerId(null);
     setError(null);
 
-    // Filter farmers based on input
     if (value.length >= 1 && farmersList.length > 0) {
       const filtered = farmersList.filter(farmer => 
         farmer.farmer_number?.toString().includes(value) ||
@@ -107,7 +163,6 @@ const AllFarmerPage = () => {
       setShowSuggestions(false);
     }
 
-    // Auto-select if exact match found
     const exactMatch = farmersList.find(farmer => 
       farmer.farmer_number?.toString() === value
     );
@@ -119,9 +174,10 @@ const AllFarmerPage = () => {
 
   // Function to select a farmer
   const selectFarmer = (farmer) => {
+    console.log('Selecting farmer:', farmer);
     setFarmerData({
       farmer_number: farmer.farmer_number || '',
-      farmer_name: farmer.farmer_name || '',
+      farmer_name: farmer.farmer_name || farmer.name || '', // Try both field names
       bills: []
     });
     setSelectedFarmerId(farmer._id);
@@ -135,28 +191,32 @@ const AllFarmerPage = () => {
       const fetchBills = async () => {
         setLoading(true);
         try {
-          const token = localStorage.getItem('authToken');
-          const response = await fetch(`http://localhost:5000/api/farmer/${selectedFarmerId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
+    const token = localStorage.getItem('authToken');
+
+    // Check the environment and set the appropriate URL
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? `http://localhost:5000/api/farmer/${selectedFarmerId}` 
+      : `https://your-production-url.com/api/farmer/${selectedFarmerId}`; // Replace with your production URL
+
+    const response = await fetch(baseUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
           const data = await response.json();
 
           if (response.ok && data.success) {
-            // Updated to match your API response structure
             const farmerInfo = data.farmer;
             
-            // Sort bills by createdAt in descending order (most recent first)
             const sortedBills = (farmerInfo.bills || []).sort((a, b) => {
               const dateA = new Date(a.createdAt || a.updatedAt || 0);
               const dateB = new Date(b.createdAt || b.updatedAt || 0);
-              return dateB - dateA; // Descending order (newest first)
+              return dateB - dateA;
             });
 
             setFarmerData((prev) => ({
               ...prev,
-              farmer_name: farmerInfo.name || prev.farmer_name,
+              farmer_name: farmerInfo.name || farmerInfo.farmer_name || prev.farmer_name,
               farmer_number: farmerInfo.farmer_number || prev.farmer_number,
               bills: sortedBills
             }));
@@ -176,16 +236,181 @@ const AllFarmerPage = () => {
     }
   }, [selectedFarmerId]);
 
-  // Calculate total bill amount
-  const calculateTotalBill = (bill) => {
-    const sugarcaneWeight = parseFloat(bill.only_sugarcane_weight) || 0;
-    const rate = parseFloat(bill.sugarcane_rate) || 0;
-    return (sugarcaneWeight * rate).toFixed(2);
+  // Prepare weight data for bill printing
+  const prepareWeightDataForBill = (bill) => {
+    const filledWeight = parseFloat(bill.filled_vehicle_weight) || 0;
+    const emptyWeight = parseFloat(bill.empty_vehicle_weight) || 0;
+    const bindingMaterial = parseFloat(bill.binding_material) || 0;
+    const netWeight = parseFloat(bill.only_sugarcane_weight) || 0;
+
+    // Convert kg to tons (divide by 1000)
+    const second_cloumn = [
+      (filledWeight / 1000).toFixed(3),
+      (emptyWeight / 1000).toFixed(3),
+      ((filledWeight - emptyWeight) / 1000).toFixed(3),
+      (bindingMaterial / 1000).toFixed(3),
+      (netWeight / 1000).toFixed(3)
+    ];
+
+    const thrid_column = [
+      filledWeight.toFixed(2),
+      emptyWeight.toFixed(2),
+      (filledWeight - emptyWeight).toFixed(2),
+      bindingMaterial.toFixed(2),
+      netWeight.toFixed(2)
+    ];
+
+    return { second_cloumn, thrid_column };
   };
 
-  // Action handlers
-  const handleWhatsAppShare = (bill) => {
-    const message = `🧾 *Farmer Bill Details*
+  // Generate Image from Bill Component 
+  const generateImageFromBill = async (bill) => {
+    try {
+      setImageGenerating(true);
+      showFlashMessage('🔄 Generating bill image...', 'info', 2000);
+
+      // Show image preview for rendering in a VISIBLE modal
+      setShowImagePreview(true);
+      setBillToPrint(bill);
+
+      // Wait for the component to render properly
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      if (!imagePreviewRef.current) {
+        throw new Error('Image preview element not found');
+      }
+
+      // Enhanced html-to-image options for better quality
+      const dataUrl = await htmlToImage.toPng(imagePreviewRef.current, {
+        quality: 1.0,
+        pixelRatio: 2,
+        width: imagePreviewRef.current.scrollWidth,
+        height: imagePreviewRef.current.scrollHeight,
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left'
+        },
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+        useCORS: true
+      });
+
+      // Hide image preview
+      setShowImagePreview(false);
+      setBillToPrint(null);
+
+      return dataUrl;
+
+    } catch (error) {
+      console.error('Image generation error:', error);
+      setShowImagePreview(false);
+      setBillToPrint(null);
+      showFlashMessage('❌ Failed to generate image', 'error');
+      throw error;
+    } finally {
+      setImageGenerating(false);
+    }
+  };
+
+  // Convert DataURL to Blob
+  const dataURLToBlob = (dataURL) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  // Upload Image to backend and get Cloudinary URL
+const uploadImageToCloudinary = async (imageBlob, fileName) => {
+  try {
+    const formData = new FormData();
+    formData.append('pdf', imageBlob, fileName);
+
+    const token = localStorage.getItem('authToken');
+
+    // Check the environment and set the appropriate URL
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/upload' 
+      : 'https://your-production-url.com/api/upload'; // Replace with the production URL
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        return data.url;
+      } else {
+        throw new Error(data.message || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      throw error;
+    }
+  };
+
+  // FIXED: Format phone number for WhatsApp
+  const formatPhoneForWhatsApp = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    
+    // Remove all non-digit characters
+    let cleanNumber = phoneNumber.toString().replace(/\D/g, '');
+    
+    // If number starts with 91, use as is
+    if (cleanNumber.startsWith('91')) {
+      return cleanNumber;
+    }
+    
+    // If number is 10 digits, add India country code
+    if (cleanNumber.length === 10) {
+      return '91' + cleanNumber;
+    }
+    
+    // If number is 11 digits and starts with 0, remove 0 and add 91
+    if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
+      return '91' + cleanNumber.substring(1);
+    }
+    
+    // Return as is for other cases
+    return cleanNumber;
+  };
+
+  // FIXED: Enhanced WhatsApp share with proper phone formatting
+  const handleWhatsAppShare = async (bill) => {
+    try {
+      setImageGenerating(true);
+      showFlashMessage('🔄 Preparing bill for WhatsApp...', 'info');
+
+      // Generate Image
+      const imageDataUrl = await generateImageFromBill(bill);
+      
+      // Convert to blob
+      const imageBlob = dataURLToBlob(imageDataUrl);
+      
+      // Create filename
+      const fileName = `bill_${farmerData.farmer_name.replace(/\s+/g, '_')}_${new Date(bill.createdAt).toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
+      
+      // Upload to Cloudinary
+      showFlashMessage('☁️ Uploading image...', 'info');
+      const imageUrl = await uploadImageToCloudinary(imageBlob, fileName);
+
+      // Format phone number for WhatsApp
+      const formattedPhone = formatPhoneForWhatsApp(farmerData.farmer_number);
+      console.log('Original phone:', farmerData.farmer_number, 'Formatted phone:', formattedPhone);
+
+      // Create WhatsApp message with Image URL
+      const message = `🧾 *Farmer Bill Details*
+
 📅 Date: ${new Date(bill.createdAt).toLocaleDateString('en-IN')}
 👨‍🌾 Farmer: ${farmerData.farmer_name}
 📱 Mobile: ${farmerData.farmer_number}
@@ -194,14 +419,34 @@ const AllFarmerPage = () => {
 🌾 Quality: ${bill.sugarcane_quality}
 ⚖️ Weight: ${bill.only_sugarcane_weight} kg
 💰 Rate: ₹${bill.sugarcane_rate}/kg
-💵 Total: ₹${calculateTotalBill(bill)}
+💵 Total: ₹${bill.totalBill}
 💳 Given: ₹${bill.given_money}
 📊 Remaining: ₹${bill.remaining_money}
-💸 Payment: ${bill.payment_type}`;
+💸 Payment: ${bill.payment_type}
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${farmerData.farmer_number}?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+📄 *View Bill Image:*
+${imageUrl}
+
+Thank you for your business! 🙏`;
+
+      const encodedMessage = encodeURIComponent(message);
+      
+      // FIXED: Use formatted phone number for WhatsApp
+      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+      
+      console.log('WhatsApp URL:', whatsappUrl);
+      
+      showFlashMessage('✅ Image ready! Opening WhatsApp...', 'success');
+      
+      // Open WhatsApp with proper URL
+      window.open(whatsappUrl, '_blank');
+
+    } catch (error) {
+      console.error('WhatsApp share error:', error);
+      showFlashMessage('❌ Failed to prepare bill for WhatsApp', 'error');
+    } finally {
+      setImageGenerating(false);
+    }
   };
 
   const handleDeleteBill = async (billId) => {
@@ -210,17 +455,22 @@ const AllFarmerPage = () => {
     }
 
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/bill/delete/${billId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const token = localStorage.getItem('authToken');
+
+    // Check the environment and set the appropriate URL
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/bill/delete' 
+      : 'https://your-production-url.com/api/bill/delete'; // Replace with your production URL
+
+    const response = await fetch(`${baseUrl}/${billId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
       if (response.ok) {
         showFlashMessage('✅ Bill deleted successfully!', 'success');
-        // Refresh the bills list
         const updatedBills = farmerData.bills.filter(bill => bill._id !== billId);
         setFarmerData(prev => ({ ...prev, bills: updatedBills }));
       } else {
@@ -233,39 +483,24 @@ const AllFarmerPage = () => {
   };
 
   const handleUpdateBill = (billId) => {
-    // Navigate to update page or open modal
     showFlashMessage('🔄 Update functionality coming soon!', 'info');
-    // You can implement navigation to update page here
-    // navigate(`/update-bill/${billId}`);
   };
 
+  // Fixed Print Bill Function
   const handlePrintBill = (bill) => {
-    // Generate print content
-    const printContent = `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2 style="text-align: center; color: #333;">Farmer Bill</h2>
-        <hr>
-        <div style="margin: 20px 0;">
-          <strong>Date:</strong> ${new Date(bill.createdAt).toLocaleDateString('en-IN')}<br>
-          <strong>Farmer Name:</strong> ${farmerData.farmer_name}<br>
-          <strong>Mobile:</strong> ${farmerData.farmer_number}<br>
-          <strong>Driver:</strong> ${bill.driver_name}<br>
-          <strong>Vehicle Type:</strong> ${bill.vehicle_type}<br>
-          <strong>Sugarcane Quality:</strong> ${bill.sugarcane_quality}<br>
-          <strong>Weight:</strong> ${bill.only_sugarcane_weight} kg<br>
-          <strong>Rate:</strong> ₹${bill.sugarcane_rate}/kg<br>
-          <strong>Total Amount:</strong> ₹${calculateTotalBill(bill)}<br>
-          <strong>Given Amount:</strong> ₹${bill.given_money}<br>
-          <strong>Remaining Amount:</strong> ₹${bill.remaining_money}<br>
-          <strong>Payment Type:</strong> ${bill.payment_type}<br>
-        </div>
-      </div>
-    `;
+    setBillToPrint(bill);
+    setShowPrintPreview(true);
+    
+    // Delay to ensure the component renders, then print
+    setTimeout(() => {
+      window.print();
+    }, 500);
+  };
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
+  // Close print preview
+  const closePrintPreview = () => {
+    setShowPrintPreview(false);
+    setBillToPrint(null);
   };
 
   // Display the farmer's bill history
@@ -314,7 +549,6 @@ const AllFarmerPage = () => {
             </thead>
             <tbody>
               {farmerData.bills.map((bill, index) => {
-                // Add visual indicator for recent bills (last 7 days)
                 const billDate = new Date(bill.createdAt || bill.updatedAt);
                 const now = new Date();
                 const daysDiff = Math.floor((now - billDate) / (1000 * 60 * 60 * 24));
@@ -330,16 +564,25 @@ const AllFarmerPage = () => {
                     {/* Actions Column */}
                     <td className="border border-gray-300 px-2 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {/* WhatsApp Button */}
+                        {/* Enhanced WhatsApp Button with Image */}
                         <button
                           onClick={() => handleWhatsAppShare(bill)}
-                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
-                          title="Send on WhatsApp"
+                          disabled={imageGenerating}
+                          className={`${
+                            imageGenerating 
+                              ? 'bg-gray-400 cursor-not-allowed' 
+                              : 'bg-green-500 hover:bg-green-600'
+                          } text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors`}
+                          title="Send Image on WhatsApp"
                         >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.520-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
-                          </svg>
-                          WhatsApp
+                          {imageGenerating ? (
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                            </svg>
+                          )}
+                          {imageGenerating ? 'Generating...' : 'WhatsApp IMG'}
                         </button>
 
                         {/* Delete Button */}
@@ -367,11 +610,11 @@ const AllFarmerPage = () => {
                           Update
                         </button>
 
-                        {/* Print Button */}
+                        {/* Enhanced Print Button */}
                         <button
                           onClick={() => handlePrintBill(bill)}
-                          className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
-                          title="Print Bill"
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
+                          title="Print Professional Bill"
                         >
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                             <polyline points="6,9 6,2 18,2 18,9"/>
@@ -383,7 +626,7 @@ const AllFarmerPage = () => {
                       </div>
                     </td>
 
-                    {/* Date Column */}
+                    {/* Rest of the table columns remain the same */}
                     <td className="border border-gray-300 px-4 py-3">
                       <div className="flex flex-col">
                         <span className="font-medium text-sm">
@@ -430,7 +673,7 @@ const AllFarmerPage = () => {
                       ₹{bill.sugarcane_rate || 0}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-right font-semibold text-green-600">
-                      ₹{calculateTotalBill(bill)}
+                      ₹{parseFloat(bill.totalBill || 0).toFixed(2)}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-right">
                       ₹{bill.given_money || 0}
@@ -470,7 +713,7 @@ const AllFarmerPage = () => {
             <div className="bg-white p-3 rounded shadow">
               <p className="text-sm text-gray-600">Total Amount</p>
               <p className="text-xl font-bold text-green-600">
-                ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(calculateTotalBill(bill)), 0).toFixed(2)}
+                ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.totalBill || 0), 0).toFixed(2)}
               </p>
             </div>
             <div className="bg-white p-3 rounded shadow">
@@ -511,7 +754,7 @@ const AllFarmerPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Flash Messages */}
+      {/* Flash Messages with unique keys */}
       {flashMessages.slice(0, 2).map((msg) => (
         <FlashMessage 
           key={msg.id} 
@@ -522,7 +765,118 @@ const AllFarmerPage = () => {
         />
       ))}
 
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+      {/* FIXED: Visible Modal for Image Generation */}
+      {showImagePreview && billToPrint && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-4 border-b bg-blue-600 text-white rounded-t-lg">
+              <h3 className="text-lg font-semibold flex items-center">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                Generating Bill Image...
+              </h3>
+            </div>
+            <div 
+              ref={imagePreviewRef} 
+              className="p-6 max-w-full overflow-hidden"
+              style={{ 
+                minWidth: '800px',
+                backgroundColor: 'white'
+              }}
+            >
+              <FarmerBuyingBill
+                language={language}
+                date={billToPrint.createdAt ? new Date(billToPrint.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
+                farmerName={farmerData.farmer_name}
+                farmerNumber={farmerData.farmer_number}
+                sugarcaneQuality={billToPrint.sugarcane_quality}
+                vehicleType={billToPrint.vehicle_type}
+                driverName={billToPrint.driver_name}
+                cutter={billToPrint.cutter}
+                weightData={prepareWeightDataForBill(billToPrint)}
+                totalBill={parseFloat(billToPrint.totalBill || 0).toFixed(2)}
+                givenAmount={billToPrint.given_money}
+                remainingAmount={billToPrint.remaining_money}
+                paymentType={billToPrint.payment_type}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Print Content - This will be printed */}
+      {showPrintPreview && billToPrint && (
+        <div 
+          id="print-content" 
+          className="print-only"
+          style={{ 
+            position: 'absolute', 
+            left: '-9999px',
+            top: '0',
+            width: '210mm',
+            minHeight: '297mm'
+          }}
+        >
+          <FarmerBuyingBill
+            language={language}
+            date={billToPrint.createdAt ? new Date(billToPrint.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
+            farmerName={farmerData.farmer_name}
+            farmerNumber={farmerData.farmer_number}
+            sugarcaneQuality={billToPrint.sugarcane_quality}
+            vehicleType={billToPrint.vehicle_type}
+            driverName={billToPrint.driver_name}
+            cutter={billToPrint.cutter}
+            weightData={prepareWeightDataForBill(billToPrint)}
+            totalBill={parseFloat(billToPrint.totalBill || 0).toFixed(2)}
+            givenAmount={billToPrint.given_money}
+            remainingAmount={billToPrint.remaining_money}
+            paymentType={billToPrint.payment_type}
+          />
+        </div>
+      )}
+
+      {/* Print Preview Modal - This is just for preview */}
+      {showPrintPreview && billToPrint && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 no-print">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Bill Print Preview</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Print Now
+                </button>
+                <button
+                  onClick={closePrintPreview}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <FarmerBuyingBill
+                language={language}
+                date={billToPrint.createdAt ? new Date(billToPrint.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
+                farmerName={farmerData.farmer_name}
+                farmerNumber={farmerData.farmer_number}
+                sugarcaneQuality={billToPrint.sugarcane_quality}
+                vehicleType={billToPrint.vehicle_type}
+                driverName={billToPrint.driver_name}
+                cutter={billToPrint.cutter}
+                weightData={prepareWeightDataForBill(billToPrint)}
+                totalBill={parseFloat(billToPrint.totalBill || 0).toFixed(2)}
+                givenAmount={billToPrint.given_money}
+                remainingAmount={billToPrint.remaining_money}
+                paymentType={billToPrint.payment_type}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 no-print">
         <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Farmer Bill History
         </h2>
@@ -570,7 +924,7 @@ const AllFarmerPage = () => {
                         <div className="flex justify-between items-center">
                           <div>
                             <div className="font-semibold text-gray-800">
-                              {farmer.farmer_name || 'No Name'}
+                              {farmer.farmer_name || farmer.name || 'No Name'}
                             </div>
                             <div className="text-sm text-gray-600">
                               📱 {farmer.farmer_number || 'No Mobile'}
@@ -625,11 +979,98 @@ const AllFarmerPage = () => {
       </div>
 
       {/* Display the Farmer's Bills */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
+      <div className="bg-white shadow-lg rounded-lg p-6 no-print">
         {displayBills()}
       </div>
 
-   
+      {/* Enhanced Print-specific styles */}
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+          }
+          to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+          }
+        }
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
+        }
+
+        @media print {
+          @page {
+            size: A4;
+            margin: 0.5in;
+          }
+          
+          * {
+            visibility: hidden !important;
+          }
+          
+          .no-print, .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          
+          .print-only, .print-only * {
+            visibility: visible !important;
+            position: static !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: auto !important;
+            height: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
+          #print-content {
+            position: static !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+          }
+          
+          #print-content table,
+          #print-content .w-full,
+          #print-content div {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          
+          #print-content .grid {
+            width: 100% !important;
+            display: grid !important;
+          }
+          
+          #print-content .grid-cols-2 {
+            grid-template-columns: 1fr 1fr !important;
+            width: 100% !important;
+          }
+          
+          html, body {
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+          }
+          
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
