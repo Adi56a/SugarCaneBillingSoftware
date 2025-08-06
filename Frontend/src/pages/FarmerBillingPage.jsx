@@ -82,12 +82,19 @@ const FarmerBillingPage = () => {
   const fetchAllFarmers = async () => {
     setIsLoadingFarmers(true);
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:5000/api/farmer/all', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const token = localStorage.getItem('authToken');
+
+    // Dynamically set the URL based on the environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/farmer/all' 
+      : 'https://your-production-url.com/api/farmer/all'; // Replace with your actual production URL
+
+    const response = await fetch(baseUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
       
       if (response.ok) {
         const data = await response.json();
@@ -194,15 +201,23 @@ const FarmerBillingPage = () => {
     setIsSubmitting(true);
     const token = localStorage.getItem('authToken');
     
-    try {
-      const response = await fetch('http://localhost:5000/api/bill/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData),
-      });
+   try {
+    const token = localStorage.getItem('authToken');
+
+    // Dynamically set the URL based on the environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/bill/create' 
+      : 'https://your-production-url.com/api/bill/create'; // Replace with your actual production URL
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(formData),
+    });
+
 
       if (response.ok) {
         const result = await response.json();
