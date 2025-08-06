@@ -77,7 +77,7 @@ const Login = () => {
     // Dynamically set the URL based on the environment
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/admin/login' 
-      : 'https://your-production-url.com/api/admin/login'; // Replace with your actual production URL
+      : 'https://sugarcanebillingsoftware.onrender.com/api/admin/login'; // Replace with your actual production URL
 
     const response = await fetch(baseUrl, {
       method: 'POST',

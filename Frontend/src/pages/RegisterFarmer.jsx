@@ -152,7 +152,7 @@ const RegisterFarmer = () => {
     // Dynamically set the URL based on the environment
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/farmer/register' 
-      : 'https://your-production-url.com/api/farmer/register'; // Replace with your actual production URL
+      : 'https://sugarcanebillingsoftware.onrender.com/api/farmer/register'; // Replace with your actual production URL
 
     const response = await fetch(baseUrl, {
       method: 'POST',

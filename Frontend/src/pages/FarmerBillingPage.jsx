@@ -87,7 +87,7 @@ const FarmerBillingPage = () => {
     // Dynamically set the URL based on the environment
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/farmer/all' 
-      : 'https://your-production-url.com/api/farmer/all'; // Replace with your actual production URL
+      : 'https://sugarcanebillingsoftware.onrender.com/api/farmer/all'; // Replace with your actual production URL
 
     const response = await fetch(baseUrl, {
       headers: {
@@ -207,7 +207,7 @@ const FarmerBillingPage = () => {
     // Dynamically set the URL based on the environment
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/bill/create' 
-      : 'https://your-production-url.com/api/bill/create'; // Replace with your actual production URL
+      : 'https://sugarcanebillingsoftware.onrender.com/api/bill/create'; // Replace with your actual production URL
 
     const response = await fetch(baseUrl, {
       method: 'POST',
