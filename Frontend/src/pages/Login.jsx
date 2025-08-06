@@ -73,14 +73,19 @@ const Login = () => {
     setIsLoading(true);
     const userData = { username, password };
 
-    try {
-      const response = await fetch('http://localhost:5000/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+     try {
+    // Dynamically set the URL based on the environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000/api/admin/login' 
+      : 'https://your-production-url.com/api/admin/login'; // Replace with your actual production URL
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
 
       const result = await response.json();
 
