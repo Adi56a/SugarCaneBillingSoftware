@@ -114,5 +114,40 @@ const fetchFarmerById = async (req, res) => {
 };
 
 
+const updateFarmerById = async (req, res) => {
+  const { farmerId } = req.params; // Changed from 'id' to 'farmerId'
+  const { farmer_number, farmer_name } = req.body;
 
-module.exports = {registerFarmer , fetchFarmerName , fetchAllFarmer , fetchFarmerById} 
+  try {
+    let farmer = await Farmer.findById(farmerId); // Changed from 'id' to 'farmerId'
+     
+    if (!farmer) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Farmer not found" 
+      });
+    }
+
+    if (farmer_number) farmer.farmer_number = farmer_number;
+    if (farmer_name) farmer.farmer_name = farmer_name;
+
+    await farmer.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Farmer Details Updated Successfully",
+      farmer: farmer
+    });
+
+  } catch (error) { // Fixed typo: 'e' to 'error'
+    return res.status(500).json({ 
+      success: false,
+      message: "Error updating farmer", 
+      error: error.message 
+    });
+  }
+};
+
+
+
+module.exports = {registerFarmer , fetchFarmerName , fetchAllFarmer , fetchFarmerById , updateFarmerById} 
