@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
 import RegisterFarmer from './pages/RegisterFarmer';
 import FarmerBillingPage from './pages/FarmerBillingPage';
+import UpdateFarmerPage from './pages/UpdateFarmerPage';
 import AllFarmerPage from './pages/AllFarmerPage';
 
 const App = () => {
@@ -49,6 +50,14 @@ const App = () => {
           element={
             <ProtectedRoute>
              <AllFarmerPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/update_farmer" 
+          element={
+            <ProtectedRoute>
+             <UpdateFarmerPage />
             </ProtectedRoute>
           } 
         />
