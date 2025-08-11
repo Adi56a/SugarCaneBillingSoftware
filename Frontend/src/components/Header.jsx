@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaUsers, FaFileInvoice, FaUserPlus, FaSignOutAlt, FaUser, FaBars, FaTimes } from 'react-icons/fa';
-import { MdSell } from 'react-icons/md';
+import { FaHome, FaUsers, FaFileInvoice, FaUserPlus, FaSignOutAlt, FaUser, FaBars, FaTimes, FaUserEdit } from 'react-icons/fa';
+import { MdSell, MdReceipt, MdPersonAdd, MdGroup } from 'react-icons/md';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -14,7 +14,6 @@ const Header = () => {
       setLanguage(localStorage.getItem('language') || 'en');
     };
     
-    // Listen for language changes
     window.addEventListener('storage', handleLanguageChange);
     return () => window.removeEventListener('storage', handleLanguageChange);
   }, []);
@@ -23,6 +22,8 @@ const Header = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('selectedFarmerNumber');
     localStorage.removeItem('selectedFarmerName');
+    localStorage.removeItem('selectedSellerNumber');
+    localStorage.removeItem('selectedSellerName');
     navigate('/login');
     setIsMenuOpen(false);
   };
@@ -33,10 +34,22 @@ const Header = () => {
     en: {
       brandName: "Dhawle Sugar Mill",
       home: "Home",
-      newBill: "New Bill",
+      
+      // Farmer Section
+      farmerSection: "Farmer Management",
+      farmerBill: "Farmer Bill",
+      farmerRegister: "Register Farmer",
       allFarmers: "All Farmers",
+      updateFarmer: "Update Farmer",
+      
+      // Seller Section
+      sellerSection: "Seller Management", 
+      sellerBill: "Seller Bill",
+      sellerRegister: "Register Seller",
+      allSellers: "All Sellers",
+      
+      // Other
       sellingBills: "Selling Bills",
-      register: "Register Farmer",
       login: "Login",
       signup: "Sign Up",
       logout: "Logout",
@@ -45,10 +58,22 @@ const Header = () => {
     mr: {
       brandName: "ढवळे साखर कारखाना",
       home: "होम",
-      newBill: "नवीन बिल",
+      
+      // Farmer Section
+      farmerSection: "शेतकरी व्यवस्थापन",
+      farmerBill: "शेतकरी बिल",
+      farmerRegister: "शेतकरी नोंदणी",
       allFarmers: "सर्व शेतकरी",
+      updateFarmer: "शेतकरी अद्यतनित करा",
+      
+      // Seller Section
+      sellerSection: "विक्रेता व्यवस्थापन",
+      sellerBill: "विक्रेता बिल",
+      sellerRegister: "विक्रेता नोंदणी", 
+      allSellers: "सर्व विक्रेते",
+      
+      // Other
       sellingBills: "विक्री बिले",
-      register: "शेतकरी नोंदणी",
       login: "लॉगिन",
       signup: "साइन अप",
       logout: "लॉगआउट",
@@ -58,16 +83,88 @@ const Header = () => {
 
   const t = translations[language];
 
-  const navigationItems = [
-    { name: t.home, path: '/', icon: <FaHome /> },
-    { name: t.newBill, path: '/farmer_billing', icon: <FaFileInvoice /> },
+  const farmerItems = [
+    { name: t.farmerBill, path: '/farmer_billing', icon: <FaFileInvoice /> },
+    { name: t.farmerRegister, path: '/farmer_register', icon: <FaUserPlus /> },
     { name: t.allFarmers, path: '/all_farmer', icon: <FaUsers /> },
-    { name: t.sellingBills, path: '/selling-billing', icon: <MdSell /> },
-    { name: t.register, path: '/farmer_register', icon: <FaUserPlus /> }
+    { name: t.updateFarmer, path: '/update_farmer', icon: <FaUserEdit /> }
+  ];
+
+  const sellerItems = [
+    { name: t.sellerBill, path: '/sellerbill_creation', icon: <MdReceipt /> },
+    { name: t.sellerRegister, path: '/register_seller', icon: <MdPersonAdd /> },
+    { name: t.allSellers, path: '/all_seller', icon: <MdGroup /> }
+  ];
+
+  const otherItems = [
+    { name: t.sellingBills, path: '/selling-billing', icon: <MdSell /> }
   ];
 
   const isActivePath = (path) => {
     return location.pathname === path;
+  };
+
+  const NavDropdown = ({ title, items, isDesktop = true }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <div className={`relative ${isDesktop ? 'group' : ''}`}>
+        <button
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            items.some(item => isActivePath(item.path))
+              ? 'bg-blue-100 text-blue-700 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
+          onClick={() => !isDesktop && setIsOpen(!isOpen)}
+        >
+          <span>{title}</span>
+          <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen && !isDesktop ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Desktop Dropdown */}
+        {isDesktop && (
+          <div className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className="py-2">
+              {items.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center space-x-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-150 ${
+                    isActivePath(item.path) ? 'text-blue-700 bg-blue-50' : 'text-gray-700'
+                  }`}
+                >
+                  <span className="text-base">{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Dropdown */}
+        {!isDesktop && isOpen && (
+          <div className="ml-4 mt-2 space-y-1">
+            {items.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center space-x-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActivePath(item.path)
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <span className="text-base">{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -96,7 +193,22 @@ const Header = () => {
             {/* Desktop Navigation */}
             {isLoggedIn && (
               <nav className="hidden lg:flex items-center space-x-1">
-                {navigationItems.map((item) => (
+                <Link
+                  to="/"
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActivePath('/')
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <FaHome className="text-lg" />
+                  <span>{t.home}</span>
+                </Link>
+
+                <NavDropdown title={t.farmerSection} items={farmerItems} />
+                <NavDropdown title={t.sellerSection} items={sellerItems} />
+
+                {otherItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
@@ -165,7 +277,36 @@ const Header = () => {
             <div className="px-4 py-3 space-y-1">
               {isLoggedIn ? (
                 <>
-                  {navigationItems.map((item) => (
+                  <Link
+                    to="/"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      isActivePath('/')
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FaHome className="text-lg" />
+                    <span>{t.home}</span>
+                  </Link>
+
+                  <div className="py-2">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2">
+                      {t.farmerSection}
+                    </div>
+                    <NavDropdown title="👨‍🌾 Farmer Options" items={farmerItems} isDesktop={false} />
+                  </div>
+
+                  <div className="py-2">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2">
+                      {t.sellerSection}
+                    </div>
+                    <NavDropdown title="🏪 Seller Options" items={sellerItems} isDesktop={false} />
+                  </div>
+
+                  <div className="border-t border-gray-200 my-2"></div>
+
+                  {otherItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
