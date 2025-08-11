@@ -4,7 +4,7 @@ const translations = {
   en: {
     companyName: "Dhawle Gul Uddyog Samuha",
     address: "Wadgaw Rasai, District Pune, pin - 412211",
-    contact: "Contact: Dhwale Brothers 35236532445",
+    contact: "Contact: Dhwale Brothers +91 70289 56076",
     title: "Seller Sales Bill Sugarcane Weight Bill",
     date: "Date",
     sellerName: "Seller Name",
@@ -33,7 +33,7 @@ const translations = {
   mr: {
     companyName: "धवाले गुळ उद्योग समूह",
     address: "वडगाव रासाई, जिल्हा पुणे, पिन - ४१२२११",
-    contact: "संपर्क: धवले भानुदु ३५२३६५३२४४५",
+    contact: "संपर्क: धवले भानुदु +९१ ७०२८९ ५६०७६",
     title: "विक्रेता विक्री बिल ऊस वजन बिल",
     date: "तारीख",
     sellerName: "विक्रेत्याचे नाव",

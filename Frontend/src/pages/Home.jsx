@@ -68,7 +68,7 @@ const Home = () => {
       quickActions: 'Quick Actions'
     },
     mr: {
-      welcome: 'गुळ कारखाना व्यवस्थापनात आपले स्वागत',
+      welcome: 'ढवळे गुळ उद्योग समूह',
       subtitle: 'आपले बिलिंग आणि शेतकरी व्यवस्थापन प्रक्रिया सुव्यवस्थित करा',
       selectOption: 'आपली कृती निवडा',
       
@@ -325,7 +325,7 @@ const Home = () => {
             <div className="text-center">
               <div className="mb-8">
                 <div className="relative inline-flex items-center justify-center mb-6">
-                  <div className="relative w-40 h-40 bg-white rounded-3xl shadow-2xl p-4 transform hover:rotate-6 transition-transform duration-500 border border-white border-opacity-50 backdrop-blur-sm">
+                  <div className="relative w-60 h-50 bg-white rounded-3xl shadow-2xl p-4 transform hover:rotate-6 transition-transform duration-500 border border-white border-opacity-50 backdrop-blur-sm">
                     {!logoError ? (
                       <img
                         src={`/bill_logo.jpg`}

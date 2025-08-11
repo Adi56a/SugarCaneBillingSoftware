@@ -316,7 +316,7 @@ const FarmerBillingPage = () => {
       driverName: "चालकाचे नाव",
       sugarcaneQuality: "उस्साची गुणवत्ता",
       vehicleType: "वाहन प्रकार",
-      cutter: "कटर",
+      cutter: " मुकादमाचे नाव",
       filledVehicleWeight: "भरलेल्या वाहनाचे वजन (कि.ग्रा)",
       emptyVehicleWeight: "रिकाम्या वाहनाचे वजन (कि.ग्रा)",
       bindingMaterial: "बांधणी साहित्याचे वजन (कि.ग्रा)",

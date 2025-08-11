@@ -326,25 +326,25 @@ const AllFarmerPage = () => {
   };
 
   // Upload Image to backend and get Cloudinary URL
-const uploadImageToCloudinary = async (imageBlob, fileName) => {
-  try {
-    const formData = new FormData();
-    formData.append('pdf', imageBlob, fileName);
+  const uploadImageToCloudinary = async (imageBlob, fileName) => {
+    try {
+      const formData = new FormData();
+      formData.append('pdf', imageBlob, fileName);
 
-    const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken');
 
-    // Check the environment and set the appropriate URL
-    const baseUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:5000/api/upload' 
-      : 'https://sugarcanebillingsoftware.onrender.com/api/upload'; // Replace with the production URL
+      // Check the environment and set the appropriate URL
+      const baseUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000/api/upload' 
+        : 'https://sugarcanebillingsoftware.onrender.com/api/upload'; // Replace with the production URL
 
-    const response = await fetch(baseUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
+      const response = await fetch(baseUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
 
       const data = await response.json();
       
@@ -385,32 +385,31 @@ const uploadImageToCloudinary = async (imageBlob, fileName) => {
     return cleanNumber;
   };
 
-  // FIXED: Enhanced WhatsApp share with proper phone formatting
- // FIXED: Enhanced WhatsApp share with direct mobile app opening
-const handleWhatsAppShare = async (bill) => {
-  try {
-    setImageGenerating(true);
-    showFlashMessage('🔄 Preparing bill for WhatsApp...', 'info');
+  // RESTORED: Enhanced WhatsApp share with direct mobile app opening
+  const handleWhatsAppShare = async (bill) => {
+    try {
+      setImageGenerating(true);
+      showFlashMessage('🔄 Preparing bill for WhatsApp...', 'info');
 
-    // Generate Image
-    const imageDataUrl = await generateImageFromBill(bill);
-    
-    // Convert to blob
-    const imageBlob = dataURLToBlob(imageDataUrl);
-    
-    // Create filename
-    const fileName = `bill_${farmerData.farmer_name.replace(/\s+/g, '_')}_${new Date(bill.createdAt).toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
-    
-    // Upload to Cloudinary
-    showFlashMessage('☁️ Uploading image...', 'info');
-    const imageUrl = await uploadImageToCloudinary(imageBlob, fileName);
+      // Generate Image
+      const imageDataUrl = await generateImageFromBill(bill);
+      
+      // Convert to blob
+      const imageBlob = dataURLToBlob(imageDataUrl);
+      
+      // Create filename
+      const fileName = `bill_${farmerData.farmer_name.replace(/\s+/g, '_')}_${new Date(bill.createdAt).toLocaleDateString('en-IN').replace(/\//g, '-')}.png`;
+      
+      // Upload to Cloudinary
+      showFlashMessage('☁️ Uploading image...', 'info');
+      const imageUrl = await uploadImageToCloudinary(imageBlob, fileName);
 
-    // Format phone number for WhatsApp
-    const formattedPhone = formatPhoneForWhatsApp(farmerData.farmer_number);
-    console.log('Original phone:', farmerData.farmer_number, 'Formatted phone:', formattedPhone);
+      // Format phone number for WhatsApp
+      const formattedPhone = formatPhoneForWhatsApp(farmerData.farmer_number);
+      console.log('Original phone:', farmerData.farmer_number, 'Formatted phone:', formattedPhone);
 
-    // Create WhatsApp message with Image URL
-    const message = `🧾 *Farmer Bill Details*
+      // Create WhatsApp message with Image URL
+      const message = `🧾 *Farmer Bill Details*
 
 📅 Date: ${new Date(bill.createdAt).toLocaleDateString('en-IN')}
 👨‍🌾 Farmer: ${farmerData.farmer_name}
@@ -430,45 +429,44 @@ ${imageUrl}
 
 Thank you for your business! 🙏`;
 
-    const encodedMessage = encodeURIComponent(message);
-    
-    // FIXED: Direct WhatsApp app opening for mobile devices
-    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
-    
-    console.log('WhatsApp URL:', whatsappUrl);
-    
-    showFlashMessage('✅ Image ready! Opening WhatsApp...', 'success');
-    
-    // FIXED: Direct app opening logic for mobile devices
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      // For mobile devices - try direct app opening first
-      const whatsappAppUrl = `whatsapp://send?phone=${formattedPhone}&text=${encodedMessage}`;
+      const encodedMessage = encodeURIComponent(message);
       
-      // Try to open WhatsApp app directly
-      window.location.href = whatsappAppUrl;
+      // FIXED: Direct WhatsApp app opening for mobile devices
+      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
       
-      // Fallback to web version after a short delay if app doesn't open
-      setTimeout(() => {
-        if (!document.hidden) {
-          // If still on the page, open web version
-          window.open(whatsappUrl, '_blank');
-        }
-      }, 2000);
-    } else {
-      // For desktop - open web WhatsApp in new tab
-      window.open(whatsappUrl, '_blank');
+      console.log('WhatsApp URL:', whatsappUrl);
+      
+      showFlashMessage('✅ Image ready! Opening WhatsApp...', 'success');
+      
+      // FIXED: Direct app opening logic for mobile devices
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // For mobile devices - try direct app opening first
+        const whatsappAppUrl = `whatsapp://send?phone=${formattedPhone}&text=${encodedMessage}`;
+        
+        // Try to open WhatsApp app directly
+        window.location.href = whatsappAppUrl;
+        
+        // Fallback to web version after a short delay if app doesn't open
+        setTimeout(() => {
+          if (!document.hidden) {
+            // If still on the page, open web version
+            window.open(whatsappUrl, '_blank');
+          }
+        }, 2000);
+      } else {
+        // For desktop - open web WhatsApp in new tab
+        window.open(whatsappUrl, '_blank');
+      }
+
+    } catch (error) {
+      console.error('WhatsApp share error:', error);
+      showFlashMessage('❌ Failed to prepare bill for WhatsApp', 'error');
+    } finally {
+      setImageGenerating(false);
     }
-
-  } catch (error) {
-    console.error('WhatsApp share error:', error);
-    showFlashMessage('❌ Failed to prepare bill for WhatsApp', 'error');
-  } finally {
-    setImageGenerating(false);
-  }
-};
-
+  };
 
   const handleDeleteBill = async (billId) => {
     if (!window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
@@ -786,7 +784,7 @@ Thank you for your business! 🙏`;
         />
       ))}
 
-      {/* FIXED: Visible Modal for Image Generation */}
+      {/* RESTORED: Visible Modal for Image Generation */}
       {showImagePreview && billToPrint && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
@@ -810,6 +808,7 @@ Thank you for your business! 🙏`;
                 farmerName={farmerData.farmer_name}
                 farmerNumber={farmerData.farmer_number}
                 sugarcaneQuality={billToPrint.sugarcane_quality}
+                sugarcaneRate={billToPrint.sugarcane_rate}
                 vehicleType={billToPrint.vehicle_type}
                 driverName={billToPrint.driver_name}
                 cutter={billToPrint.cutter}
@@ -824,25 +823,16 @@ Thank you for your business! 🙏`;
         </div>
       )}
 
-      {/* Hidden Print Content - This will be printed */}
+      {/* FIXED: Print Content Container - No blank page issue */}
       {showPrintPreview && billToPrint && (
-        <div 
-          id="print-content" 
-          className="print-only"
-          style={{ 
-            position: 'absolute', 
-            left: '-9999px',
-            top: '0',
-            width: '210mm',
-            minHeight: '297mm'
-          }}
-        >
+        <div className="print-container">
           <FarmerBuyingBill
             language={language}
             date={billToPrint.createdAt ? new Date(billToPrint.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
             farmerName={farmerData.farmer_name}
             farmerNumber={farmerData.farmer_number}
             sugarcaneQuality={billToPrint.sugarcane_quality}
+            sugarcaneRate={billToPrint.sugarcane_rate}
             vehicleType={billToPrint.vehicle_type}
             driverName={billToPrint.driver_name}
             cutter={billToPrint.cutter}
@@ -883,6 +873,7 @@ Thank you for your business! 🙏`;
                 farmerName={farmerData.farmer_name}
                 farmerNumber={farmerData.farmer_number}
                 sugarcaneQuality={billToPrint.sugarcane_quality}
+                sugarcaneRate={billToPrint.sugarcane_rate}
                 vehicleType={billToPrint.vehicle_type}
                 driverName={billToPrint.driver_name}
                 cutter={billToPrint.cutter}
@@ -1004,7 +995,7 @@ Thank you for your business! 🙏`;
         {displayBills()}
       </div>
 
-      {/* Enhanced Print-specific styles */}
+      {/* FIXED: Print Styles - No blank page + WhatsApp Restored */}
       <style jsx>{`
         @keyframes slideIn {
           from {
@@ -1020,66 +1011,60 @@ Thank you for your business! 🙏`;
           animation: slideIn 0.3s ease-out;
         }
 
+        /* Print container - Hidden by default */
+        .print-container {
+          position: absolute;
+          top: -9999px;
+          left: 0;
+          width: 21cm;
+          background: white;
+          padding: 0;
+          margin: 0;
+        }
+
         @media print {
           @page {
             size: A4;
             margin: 0.5in;
           }
           
-          * {
-            visibility: hidden !important;
+          /* Hide everything except print content */
+          body * {
+            visibility: hidden;
           }
           
+          /* Hide non-print elements completely */
           .no-print, .no-print * {
             display: none !important;
             visibility: hidden !important;
           }
           
-          .print-only, .print-only * {
+          /* Show only print container */
+          .print-container,
+          .print-container * {
             visibility: visible !important;
+          }
+          
+          /* Position print container properly */
+          .print-container {
             position: static !important;
-            left: 0 !important;
             top: 0 !important;
-            width: auto !important;
-            height: auto !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          
-          #print-content {
-            position: static !important;
             left: 0 !important;
-            top: 0 !important;
             width: 100% !important;
-            max-width: 100% !important;
             height: auto !important;
-            margin: 0 !important;
             padding: 0 !important;
-            box-sizing: border-box !important;
+            margin: 0 !important;
+            page-break-after: avoid !important;
           }
           
-          #print-content table,
-          #print-content .w-full,
-          #print-content div {
-            width: 100% !important;
-            max-width: 100% !important;
-            min-width: 100% !important;
-            box-sizing: border-box !important;
-          }
-          
-          #print-content .grid {
-            width: 100% !important;
-            display: grid !important;
-          }
-          
-          #print-content .grid-cols-2 {
-            grid-template-columns: 1fr 1fr !important;
-            width: 100% !important;
+          /* Ensure content fits in one page */
+          .print-container > * {
+            max-height: 100vh !important;
+            overflow: visible !important;
+            page-break-inside: avoid !important;
           }
           
           html, body {
-            width: 100% !important;
             height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -1089,6 +1074,14 @@ Thank you for your business! 🙏`;
           body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          
+          /* Prevent page breaks at the end */
+          body:after {
+            content: "";
+            display: block;
+            height: 0;
+            page-break-after: avoid !important;
           }
         }
       `}</style>
