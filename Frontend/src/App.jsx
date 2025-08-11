@@ -11,6 +11,10 @@ import RegisterFarmer from './pages/RegisterFarmer';
 import FarmerBillingPage from './pages/FarmerBillingPage';
 import UpdateFarmerPage from './pages/UpdateFarmerPage';
 import AllFarmerPage from './pages/AllFarmerPage';
+import RegisterSeller from './pages/RegisterSeller';
+import SellerBillCreation from './pages/SellerBillCreation';
+import AllSellerPage from './pages/AllSellerPage';
+import UpdateSellerPage from './pages/UpdateSellerPage';
 
 const App = () => {
   return (
@@ -58,6 +62,38 @@ const App = () => {
           element={
             <ProtectedRoute>
              <UpdateFarmerPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/register_seller" 
+          element={
+            <ProtectedRoute>
+             <RegisterSeller />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/sellerbill_creation" 
+          element={
+            <ProtectedRoute>
+             <SellerBillCreation />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/all_seller" 
+          element={
+            <ProtectedRoute>
+             <AllSellerPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/update_seller" 
+          element={
+            <ProtectedRoute>
+             <UpdateSellerPage />
             </ProtectedRoute>
           } 
         />
