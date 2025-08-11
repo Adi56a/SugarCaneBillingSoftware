@@ -8,6 +8,8 @@ const adminRoutes  = require('./routes/adminRoute')
 const farmerRoutes = require('./routes/farmerRoute')
 const billRoutes = require('./routes/billRoute')
 const uploadRoutes  = require('./routes/upload')
+const sellerRoute = require('./routes/sellerRoute')
+const sellerBillRoute = require('./routes/sellerBillRoute')
 
 
 
@@ -26,6 +28,8 @@ app.use('/api/upload',uploadRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/farmer', farmerRoutes)
 app.use('/api/bill',billRoutes)
+app.use('/api/seller',sellerRoute)
+app.use('/api/sellerbill' , sellerBillRoute)
 
 
 app.get('/',(req,res) => {
