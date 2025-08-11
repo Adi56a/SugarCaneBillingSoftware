@@ -4,12 +4,13 @@ const translations = {
   en: {
     companyName: "Dhawle Gul Uddyog Samuha",
     address: "Wadgaw Rasai, District Pune, pin - 412211",
-    contact: "Contact: Dhwale Brothers 35236532445",
+    contact: "Contact: Dhwale Brothers +91 70289 56076",
     title: "Buying Bill Sugarcane Weight Bill",
     date: "Date",
     farmerName: "Farmer Name",
     farmerNumber: "Farmer Number",
     sugarcaneQuality: "Quality of Sugarcane",
+    sugarcaneRate: "Sugarcane Rate",
     vehicleType: "Vehicle Type",
     driverName: "Driver Name",
     cutter: "Cutter",
@@ -30,17 +31,18 @@ const translations = {
     currency: "₹"
   },
   mr: {
-    companyName: "धवाले गुळ उद्योग समूह",
+    companyName: "ढवळे गुळ उद्योग समूह",
     address: "वडगाव रासाई, जिल्हा पुणे, पिन - ४१२२११",
-    contact: "संपर्क: धवले भानुदु ३५२३६५३२४४५",
+    contact: "संपर्क: धवले भानुदु +९१ ७०२८९ ५६०७६",
     title: "खरेदी बिल शेतकरी ऊस वजन बिल",
     date: "तारीख",
     farmerName: "शेतकऱ्याचे नाव",
     farmerNumber: "शेतकऱ्याचा नंबर",
     sugarcaneQuality: "ऊसाची गुणवत्ता",
+    sugarcaneRate: "ऊसाचा दर",
     vehicleType: "वाहन प्रकार",
     driverName: "चालकाचे नाव",
-    cutter: "कटर",
+    cutter: " मुकादमाचे नाव",
     firs_column: [
       "भरलेल्या ऊसासह वाहनाचे वजन",
       "रिकाम्या वाहनाचे वजन",
@@ -65,6 +67,7 @@ const FarmerBuyingBill = ({
   farmerName,
   farmerNumber,
   sugarcaneQuality,
+  sugarcaneRate,
   vehicleType,
   driverName,
   cutter,
@@ -93,7 +96,6 @@ const FarmerBuyingBill = ({
         lineHeight: "1.3"
       }}
     >
-      {/* Print styles */}
       <style>{`
         @media print {
           body { 
@@ -140,8 +142,8 @@ const FarmerBuyingBill = ({
         </div>
       </div>
 
-      {/* Farmer & Transport Info - Single Row */}
-      <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+      {/* Farmer & Transport Info - Three Columns */}
+      <div className="grid grid-cols-3 gap-3 mb-3 text-xs">
         <div className="bg-green-50 p-2 rounded border-l-3 border-green-500">
           <div className="space-y-1">
             <div><strong>{t.farmerName}:</strong> {farmerName}</div>
@@ -154,6 +156,14 @@ const FarmerBuyingBill = ({
             <div><strong>{t.sugarcaneQuality}:</strong> {sugarcaneQuality}</div>
             <div><strong>{t.vehicleType}:</strong> {vehicleType}</div>
             <div><strong>{t.cutter}:</strong> {cutter}</div>
+          </div>
+        </div>
+        <div className="bg-orange-50 p-2 rounded border-l-3 border-orange-500">
+          <div className="space-y-1">
+            <div><strong>{t.sugarcaneRate}:</strong></div>
+            <div className="text-center">
+              <span className="text-lg font-bold text-orange-600">{t.currency}{sugarcaneRate || 0}/kg</span>
+            </div>
           </div>
         </div>
       </div>
