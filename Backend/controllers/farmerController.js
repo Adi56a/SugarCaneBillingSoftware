@@ -1,6 +1,7 @@
 const Farmer = require('../models/farmerModel');
 const router = require('../routes/farmerRoute');
 const mongoose = require('mongoose')
+const Bill  = require('../models/billModel')
 
 const registerFarmer = async (req,res) => {
     
@@ -150,4 +151,46 @@ const updateFarmerById = async (req, res) => {
 
 
 
-module.exports = {registerFarmer , fetchFarmerName , fetchAllFarmer , fetchFarmerById , updateFarmerById} 
+const deleteFarmer = async (req, res) => {
+  try {
+    const { farmerId } = req.params;
+
+    // Check if farmer exists
+    const farmer = await Farmer.findById(farmerId);
+    if (!farmer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Farmer not found'
+      });
+    }
+
+    // Delete all bills associated with this farmer
+    const deleteBillsResult = await Bill.deleteMany({
+      _id: { $in: farmer.farmer_billhistory }
+    });
+
+    // Delete the farmer
+    await Farmer.findByIdAndDelete(farmerId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Farmer and all associated bills deleted successfully',
+      data: {
+        deletedFarmer: farmer.farmer_name,
+        deletedBillsCount: deleteBillsResult.deletedCount
+      }
+    });
+
+  } catch (error) {
+    console.error('Delete farmer error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred while deleting the farmer'
+    });
+  }
+};
+
+
+
+
+module.exports = {registerFarmer , deleteFarmer, fetchFarmerName , fetchAllFarmer , fetchFarmerById , updateFarmerById} 
