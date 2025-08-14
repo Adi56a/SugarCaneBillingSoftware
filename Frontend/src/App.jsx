@@ -15,6 +15,8 @@ import RegisterSeller from './pages/RegisterSeller';
 import SellerBillCreation from './pages/SellerBillCreation';
 import AllSellerPage from './pages/AllSellerPage';
 import UpdateSellerPage from './pages/UpdateSellerPage';
+import PayPalPaymentSuccess from './pages/About';
+import AllFarmerListPage from './pages/AllFarmerListPage';
 
 const App = () => {
   return (
@@ -97,10 +99,20 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/all_farmer_list" 
+          element={
+            <ProtectedRoute>
+             <AllFarmerListPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        
 
 
         {/* Other public routes */}
-        <Route path="/about" element={<About />} />
+        <Route path="/about" element={<PayPalPaymentSuccess />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
