@@ -49,6 +49,8 @@ const Home = () => {
       allFarmersDesc: 'View and manage all registered farmers',
       updateFarmer: 'Update Farmer',
       updateFarmerDesc: 'Update farmer information and details',
+      allFarmerList : "All Farmer List",
+      allFarmerListDesc: "All Farmer List and Actions",
       
       // Seller Activities
       sellerActivities: 'Seller Activities',
@@ -83,6 +85,9 @@ const Home = () => {
       allFarmersDesc: 'सर्व नोंदणीकृत शेतकरी पहा आणि व्यवस्थापित करा',
       updateFarmer: 'शेतकरी अद्यतनित करा',
       updateFarmerDesc: 'शेतकरी माहिती आणि तपशील अद्यतनित करा',
+      allFarmerList : "सर्व शेतकऱ्यांची यादी",
+      allFarmerListDesc: "संपूर्ण शेतकऱ्यांची माहिती असलेली यादी.",
+
       
       // Seller Activities
       sellerActivities: 'विक्रेता क्रियाकलाप',
@@ -149,7 +154,19 @@ const Home = () => {
       category: 'management',
       accentColor: 'text-orange-600',
       bgColor: 'bg-orange-50'
+    },
+    {
+      title: t.allFarmerList,
+      description: t.allFarmerListDesc,
+      link: '/all_farmer_list',
+      IconComponent: FaUserEdit,
+      color: 'from-blue-300 to-blue-500',
+      hoverColor: 'hover:from-blue-600 hover:to-blue-700',
+      category: 'management',
+      accentColor: 'text-orange-600',
+      bgColor: 'bg-orange-50'
     }
+
   ];
 
   const sellerItems = [
