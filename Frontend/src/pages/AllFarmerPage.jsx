@@ -710,40 +710,47 @@ Thank you for your business! 🙏`;
           </table>
         </div>
 
-        {/* Bill Summary */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-lg font-semibold mb-2 text-blue-800">Bill Summary</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Bills</p>
-              <p className="text-xl font-bold text-blue-600">{farmerData.bills.length}</p>
-            </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Recent Bills (7 days)</p>
-              <p className="text-xl font-bold text-green-600">
-                {farmerData.bills.filter(bill => {
-                  const billDate = new Date(bill.createdAt || bill.updatedAt);
-                  const now = new Date();
-                  const daysDiff = Math.floor((now - billDate) / (1000 * 60 * 60 * 24));
-                  return daysDiff <= 7;
-                }).length}
-              </p>
-            </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Amount</p>
-              <p className="text-xl font-bold text-green-600">
-                ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.totalBill || 0), 0).toFixed(2)}
-              </p>
-            </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Remaining</p>
-              <p className="text-xl font-bold text-red-600">
-                ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.remaining_money || 0), 0).toFixed(2)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Bill Summary */}
+<div className="mt-6 p-4 bg-blue-50 rounded-lg">
+  <h4 className="text-lg font-semibold mb-2 text-blue-800">Bill Summary</h4>
+  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="bg-white p-3 rounded shadow">
+      <p className="text-sm text-gray-600">Total Bills</p>
+      <p className="text-xl font-bold text-blue-600">{farmerData.bills.length}</p>
+    </div>
+    <div className="bg-white p-3 rounded shadow">
+      <p className="text-sm text-gray-600">Recent Bills (7 days)</p>
+      <p className="text-xl font-bold text-green-600">
+        {farmerData.bills.filter(bill => {
+          const billDate = new Date(bill.createdAt || bill.updatedAt);
+          const now = new Date();
+          const daysDiff = Math.floor((now - billDate) / (1000 * 60 * 60 * 24));
+          return daysDiff <= 7;
+        }).length}
+      </p>
+    </div>
+    <div className="bg-white p-3 rounded shadow">
+      <p className="text-sm text-gray-600">Total Amount</p>
+      <p className="text-xl font-bold text-green-600">
+        ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.totalBill || 0), 0).toFixed(2)}
+      </p>
+    </div>
+    <div className="bg-white p-3 rounded shadow">
+      <p className="text-sm text-gray-600">Total Remaining</p>
+      <p className="text-xl font-bold text-red-600">
+        ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.remaining_money || 0), 0).toFixed(2)}
+      </p>
+    </div>
+    {/* NEW: Total Sugarcane Weight Section */}
+    <div className="bg-white p-3 rounded shadow">
+      <p className="text-sm text-gray-600">Total Sugarcane Weight</p>
+      <p className="text-xl font-bold text-orange-600">
+        {farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.only_sugarcane_weight || 0), 0).toFixed(2)} kg
+      </p>
+    </div>
+  </div>
+</div>
+</div>
     );
   };
 
