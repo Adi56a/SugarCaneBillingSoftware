@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { FaUser, FaPhone, FaTruck, FaWeightHanging, FaCalculator, FaMoneyBillWave, FaFileInvoice, FaSearch } from 'react-icons/fa';
+import { FaUser, FaPhone, FaTruck, FaWeightHanging, FaCalculator, FaMoneyBillWave, FaFileInvoice, FaSearch, FaChartBar } from 'react-icons/fa';
 
 const FarmerBillingPage = () => {
   const navigate = useNavigate();
@@ -31,7 +31,8 @@ const FarmerBillingPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingFarmers, setIsLoadingFarmers] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [farmerSelected, setFarmerSelected] = useState(false); // Track if farmer is selected
+  const [farmerSelected, setFarmerSelected] = useState(false);
+  const [totalSugarcaneWeight, setTotalSugarcaneWeight] = useState(0); // New state for total sugarcane weight
   const suggestionsRef = useRef(null);
 
   // Listen for language changes
@@ -50,51 +51,78 @@ const FarmerBillingPage = () => {
 
   useEffect(() => {
     fetchAllFarmers();
+    fetchTotalSugarcaneWeight(); // Fetch total sugarcane weight on component mount
   }, []);
 
-  // Auto-calculation logic
+  // Updated auto-calculation logic
   useEffect(() => {
     const filledWeight = parseFloat(formData.filled_vehicle_weight) || 0;
     const emptyWeight = parseFloat(formData.empty_vehicle_weight) || 0;
-    const bindingMaterial = parseFloat(formData.binding_material) || 0;
     const rate = parseFloat(formData.sugarcane_rate) || 0;
     const givenMoney = parseFloat(formData.given_money) || 0;
 
+    // Calculate gross sugarcane weight
     const grossSugarcaneWeight = filledWeight - emptyWeight;
-    const netSugarcaneWeight = grossSugarcaneWeight - bindingMaterial;
-    const totalBill = netSugarcaneWeight * rate;
-    const remainingMoney = totalBill - givenMoney;
+    
+    // Auto-calculate binding material as 10% of gross sugarcane weight
+    const autoBindingMaterial = grossSugarcaneWeight > 0 ? grossSugarcaneWeight * 0.1 : 0;
+    
+    // Calculate net sugarcane weight
+    const netSugarcaneWeight = grossSugarcaneWeight - autoBindingMaterial;
+    const totalBill = netSugarcaneWeight > 0 ? netSugarcaneWeight * rate : 0;
+    const remainingMoney = totalBill > 0 ? totalBill - givenMoney : 0;
 
     setFormData(prev => ({
       ...prev,
-      only_sugarcane_weight: netSugarcaneWeight > 0 ? netSugarcaneWeight.toFixed(2) : '',
-      totalBill: totalBill > 0 ? totalBill.toFixed(2) : '',
-      remaining_money: remainingMoney !== 0 && !isNaN(remainingMoney) ? remainingMoney.toFixed(2) : ''
+      binding_material: autoBindingMaterial > 0 ? autoBindingMaterial.toFixed(2) : '0', // Send zero if no value
+      only_sugarcane_weight: netSugarcaneWeight > 0 ? netSugarcaneWeight.toFixed(2) : '0', // Send zero if no value
+      totalBill: totalBill > 0 ? totalBill.toFixed(2) : '0', // Send zero if no value
+      remaining_money: !isNaN(remainingMoney) ? remainingMoney.toFixed(2) : '0' // Send zero if no value
     }));
   }, [
     formData.filled_vehicle_weight,
     formData.empty_vehicle_weight,
-    formData.binding_material,
     formData.sugarcane_rate,
     formData.given_money
   ]);
 
+  // New function to fetch total sugarcane weight
+  const fetchTotalSugarcaneWeight = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const baseUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000/api/bill/total-sugarcane-weight' 
+        : 'https://sugarcanebillingsoftware.onrender.com/api/bill/total-sugarcane-weight';
+
+      const response = await fetch(baseUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTotalSugarcaneWeight(data.totalWeight || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching total sugarcane weight:', error);
+    }
+  };
+
   const fetchAllFarmers = async () => {
     setIsLoadingFarmers(true);
     try {
-    const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken');
 
-    // Dynamically set the URL based on the environment
-    const baseUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:5000/api/farmer/all' 
-      : 'https://sugarcanebillingsoftware.onrender.com/api/farmer/all'; // Replace with your actual production URL
+      const baseUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000/api/farmer/all' 
+        : 'https://sugarcanebillingsoftware.onrender.com/api/farmer/all';
 
-    const response = await fetch(baseUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
+      const response = await fetch(baseUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -133,7 +161,6 @@ const FarmerBillingPage = () => {
   const handleFarmerNumberChange = (e) => {
     const value = e.target.value;
     
-    // Reset farmer selection state when input changes
     setFarmerSelected(false);
     setFormData(prev => ({ ...prev, farmer_number: value, farmer_name: '' }));
     
@@ -159,7 +186,6 @@ const FarmerBillingPage = () => {
       farmer_name: farmer.farmer_name || ''
     }));
     
-    // Mark farmer as selected and hide suggestions
     setFarmerSelected(true);
     setShowSuggestions(false);
     setFilteredFarmers([]);
@@ -173,7 +199,8 @@ const FarmerBillingPage = () => {
     if (name === 'farmer_number') {
       handleFarmerNumberChange(e);
     } else {
-      if (['only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(name)) {
+      // Updated to include binding_material as auto-calculated
+      if (['binding_material', 'only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(name)) {
         return;
       }
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -181,33 +208,97 @@ const FarmerBillingPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.farmer_number || !formData.farmer_name) {
-      showFlashMessage('Please fill in farmer details', 'error');
-      return;
-    }
+  e.preventDefault();
+  
+  // 🛡️ COMPREHENSIVE VALIDATION - Prevent Backend Crash
+  const validationErrors = [];
+  
+  // Required field validations
+  if (!formData.farmer_number?.trim()) {
+    validationErrors.push('Farmer mobile number is required');
+  }
+  
+  if (!formData.farmer_name?.trim()) {
+    validationErrors.push('Farmer name is required');
+  }
+  
+  if (!formData.driver_name?.trim()) {
+    validationErrors.push('Driver name is required');
+  }
+  
+  if (!formData.vehicle_type?.trim()) {
+    validationErrors.push('Vehicle type is required');
+  }
+  
+  if (!formData.sugarcane_quality?.trim()) {
+    validationErrors.push('Sugarcane quality is required');
+  }
+  
+  if (!formData.cutter?.trim()) {
+    validationErrors.push('Cutter name is required');
+  }
+  
+  // Numeric field validations
+  const filledWeight = parseFloat(formData.filled_vehicle_weight);
+  if (!formData.filled_vehicle_weight || isNaN(filledWeight) || filledWeight <= 0) {
+    validationErrors.push('Filled vehicle weight must be a positive number');
+  }
+  
+  const emptyWeight = parseFloat(formData.empty_vehicle_weight);
+  if (!formData.empty_vehicle_weight || isNaN(emptyWeight) || emptyWeight < 0) {
+    validationErrors.push('Empty vehicle weight must be a valid number');
+  }
+  
+  const sugarcaneRate = parseFloat(formData.sugarcane_rate);
+  if (!formData.sugarcane_rate || isNaN(sugarcaneRate) || sugarcaneRate < 0) {
+    validationErrors.push('Sugarcane rate must be a positive number');
+  }
+  
+  // Logical validations
+  if (filledWeight && emptyWeight && filledWeight <= emptyWeight) {
+    validationErrors.push('Filled vehicle weight must be greater than empty vehicle weight');
+  }
+  
+  // Given money validation (if provided, should be a valid number)
+  if (formData.given_money && (isNaN(parseFloat(formData.given_money)) || parseFloat(formData.given_money) < 0)) {
+    validationErrors.push('Given money must be a valid positive number');
+  }
+  
+  // If validation errors exist, show them and stop submission
+  if (validationErrors.length > 0) {
+    const errorMessage = validationErrors.join('\n• ');
+    showFlashMessage(`❌ Please fix the following errors:\n• ${errorMessage}`, 'error', 8000);
+    return;
+  }
 
-    if (!formData.filled_vehicle_weight || !formData.empty_vehicle_weight) {
-      showFlashMessage('Please fill in vehicle weights', 'error');
-      return;
-    }
+  // 🔒 SANITIZE DATA before sending to backend
+  const sanitizedData = {
+    farmer_number: formData.farmer_number.trim(),
+    farmer_name: formData.farmer_name.trim(),
+    driver_name: formData.driver_name.trim(),
+    sugarcane_quality: formData.sugarcane_quality.trim(),
+    vehicle_type: formData.vehicle_type.trim(),
+    cutter: formData.cutter.trim(),
+    filled_vehicle_weight: parseFloat(formData.filled_vehicle_weight).toString(),
+    empty_vehicle_weight: parseFloat(formData.empty_vehicle_weight).toString(),
+    binding_material: formData.binding_material || '0',
+    only_sugarcane_weight: formData.only_sugarcane_weight || '0',
+    sugarcane_rate: parseFloat(formData.sugarcane_rate).toString(),
+    totalBill: formData.totalBill || '0',
+    given_money: formData.given_money ? parseFloat(formData.given_money).toString() : '0',
+    remaining_money: formData.remaining_money || '0',
+    payment_type: formData.payment_type?.trim() || ''
+  };
 
-    if (!formData.sugarcane_rate) {
-      showFlashMessage('Please enter sugarcane rate', 'error');
-      return;
-    }
+  console.log('📦 Sanitized data being sent to backend:', sanitizedData);
 
-    setIsSubmitting(true);
-    const token = localStorage.getItem('authToken');
-    
-   try {
-    const token = localStorage.getItem('authToken');
-
-    // Dynamically set the URL based on the environment
+  setIsSubmitting(true);
+  const token = localStorage.getItem('authToken');
+  
+  try {
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/bill/create' 
-      : 'https://sugarcanebillingsoftware.onrender.com/api/bill/create'; // Replace with your actual production URL
+      : 'https://sugarcanebillingsoftware.onrender.com/api/bill/create';
 
     const response = await fetch(baseUrl, {
       method: 'POST',
@@ -215,55 +306,57 @@ const FarmerBillingPage = () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(sanitizedData),
     });
 
+    if (response.ok) {
+      const result = await response.json();
+      showFlashMessage('🎉 Bill created successfully! Redirecting...', 'success', 3000);
+      
+      localStorage.setItem('selectedFarmerNumber', formData.farmer_number);
+      localStorage.setItem('selectedFarmerName', formData.farmer_name);
+      
+      // Update total sugarcane weight after successful bill creation
+      fetchTotalSugarcaneWeight();
+      
+      // Reset all states
+      setFormData({
+        farmer_number: '',
+        farmer_name: '',
+        driver_name: '',
+        sugarcane_quality: '',
+        vehicle_type: '',
+        cutter: '',
+        filled_vehicle_weight: '',
+        empty_vehicle_weight: '',
+        binding_material: '',
+        only_sugarcane_weight: '',
+        sugarcane_rate: '',
+        totalBill: '',
+        given_money: '',
+        remaining_money: '',
+        payment_type: ''
+      });
+      
+      setFarmerSelected(false);
+      setShowSuggestions(false);
+      setFilteredFarmers([]);
 
-      if (response.ok) {
-        const result = await response.json();
-        showFlashMessage('🎉 Bill created successfully! Redirecting...', 'success', 3000);
-        
-        localStorage.setItem('selectedFarmerNumber', formData.farmer_number);
-        localStorage.setItem('selectedFarmerName', formData.farmer_name);
-        
-        // Reset all states
-        setFormData({
-          farmer_number: '',
-          farmer_name: '',
-          driver_name: '',
-          sugarcane_quality: '',
-          vehicle_type: '',
-          cutter: '',
-          filled_vehicle_weight: '',
-          empty_vehicle_weight: '',
-          binding_material: '',
-          only_sugarcane_weight: '',
-          sugarcane_rate: '',
-          totalBill: '',
-          given_money: '',
-          remaining_money: '',
-          payment_type: ''
-        });
-        
-        // Reset farmer selection state
-        setFarmerSelected(false);
-        setShowSuggestions(false);
-        setFilteredFarmers([]);
+      setTimeout(() => {
+        navigate('/all_farmer');
+      }, 2000);
 
-        setTimeout(() => {
-          navigate('/all_farmer');
-        }, 2000);
-
-      } else {
-        const error = await response.json();
-        showFlashMessage(`❌ Error: ${error.message || 'Failed to create bill'}`, 'error');
-      }
-    } catch (error) {
-      showFlashMessage('🌐 Network error. Please check your connection and try again.', 'error');
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      const error = await response.json();
+      showFlashMessage(`❌ Error: ${error.message || 'Failed to create bill'}`, 'error');
     }
-  };
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    showFlashMessage('🌐 Network error. Please check your connection and try again.', 'error');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -306,7 +399,8 @@ const FarmerBillingPage = () => {
       vehicleDetails: "Vehicle & Transport Details",
       billingDetails: "Billing & Payment Details",
       calculationLogic: "Auto-Calculation Logic",
-      farmerSelected: "Farmer selected successfully"
+      farmerSelected: "Farmer selected successfully",
+      totalSugarcaneWeight: "Total Sugarcane Weight Processed"
     },
     mr: {
       billTitle: "नवीन बिल तयार करा",
@@ -338,7 +432,8 @@ const FarmerBillingPage = () => {
       vehicleDetails: "वाहन आणि वाहतूक तपशील",
       billingDetails: "बिलिंग आणि भुगतान तपशील",
       calculationLogic: "स्वयं-गणना तर्क",
-      farmerSelected: "शेतकरी यशस्वीरित्या निवडला गेला"
+      farmerSelected: "शेतकरी यशस्वीरित्या निवडला गेला",
+      totalSugarcaneWeight: "एकूण प्रक्रिया केलेले उसाचे वजन"
     }
   };
 
@@ -368,7 +463,7 @@ const FarmerBillingPage = () => {
   );
 
   const isAutoCalculated = (fieldName) => {
-    return ['only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(fieldName);
+    return ['binding_material', 'only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(fieldName);
   };
 
   const getFieldIcon = (fieldName) => {
@@ -379,6 +474,7 @@ const FarmerBillingPage = () => {
       case 'vehicle_type': return <FaTruck className="text-orange-500" />;
       case 'filled_vehicle_weight':
       case 'empty_vehicle_weight':
+      case 'binding_material':
       case 'only_sugarcane_weight': return <FaWeightHanging className="text-red-500" />;
       case 'sugarcane_rate':
       case 'totalBill':
@@ -418,16 +514,37 @@ const FarmerBillingPage = () => {
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
         </div>
 
-        {/* Calculation Info Box */}
+        {/* Total Sugarcane Weight Display */}
+        <div className="mb-8 p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FaChartBar className="text-3xl mr-4" />
+              <div>
+                <h3 className="text-xl font-bold">{currentLang.totalSugarcaneWeight}</h3>
+                <p className="text-green-100">Across all farmers and bills</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-bold">{totalSugarcaneWeight.toLocaleString()}</div>
+              <div className="text-green-100">kg</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Updated Calculation Info Box */}
         <div className="mb-8 p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
           <div className="flex items-center mb-4">
             <FaCalculator className="text-blue-600 text-2xl mr-3" />
             <h3 className="text-xl font-bold text-gray-800">{currentLang.calculationLogic}</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="font-semibold text-orange-800 mb-1">Binding Material</div>
+              <div className="text-orange-700">10% of (Filled - Empty) Weight</div>
+            </div>
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="font-semibold text-blue-800 mb-1">Net Weight Calculation</div>
-              <div className="text-blue-700">Filled Weight - Empty Weight - Binding Material</div>
+              <div className="text-blue-700">Gross Weight - Binding Material</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="font-semibold text-green-800 mb-1">Total Bill Calculation</div>
@@ -486,7 +603,7 @@ const FarmerBillingPage = () => {
                     )}
                   </div>
                   
-                  {/* Suggestions Dropdown - Only show if farmer not selected and conditions met */}
+                  {/* Suggestions Dropdown */}
                   {!farmerSelected && formData.farmer_number.length >= 2 && !isSubmitting && (
                     <div className="absolute top-full left-0 right-0 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto mt-1">
                       {showSuggestions && filteredFarmers.length > 0 ? (
@@ -627,13 +744,14 @@ const FarmerBillingPage = () => {
                           ? 'bg-blue-50 border-blue-300 cursor-not-allowed'
                           : 'border-gray-300'
                       }`}
-                      required={!isAutoCalculated(field.name)}
+                      required={!isAutoCalculated(field.name) && field.name !== 'payment_type'}
                       disabled={isSubmitting || isAutoCalculated(field.name)}
                       placeholder={isAutoCalculated(field.name) ? 'Auto-calculated' : ''}
                     />
                     {isAutoCalculated(field.name) && (
                       <p className="text-xs text-blue-600 mt-1">
                         This field is automatically calculated
+                        {field.name === 'binding_material' && ' (10% of gross weight)'}
                       </p>
                     )}
                   </div>
@@ -678,8 +796,6 @@ const FarmerBillingPage = () => {
           </form>
         </div>
       </div>
-
- 
     </div>
   );
 };
