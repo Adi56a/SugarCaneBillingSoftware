@@ -34,7 +34,7 @@ const Home = () => {
 
   const translations = {
     en: {
-      welcome: 'Welcome to Sugarcane Management',
+      welcome: 'Dhawl',
       subtitle: 'Streamline your billing and farmer management processes',
       selectOption: 'Choose Your Action',
       
@@ -70,7 +70,7 @@ const Home = () => {
       quickActions: 'Quick Actions'
     },
     mr: {
-      welcome: 'ढवळे गुळ उद्योग समूह',
+      welcome: 'Dhawale Jaggery Industry Group',
       subtitle: 'आपले बिलिंग आणि शेतकरी व्यवस्थापन प्रक्रिया सुव्यवस्थित करा',
       selectOption: 'आपली कृती निवडा',
       
