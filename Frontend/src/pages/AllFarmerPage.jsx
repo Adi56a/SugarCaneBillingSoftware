@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FarmerBuyingBill from '../components/FarmerBuyingBill'; // Import the bill component
 import * as htmlToImage from 'html-to-image';
+import Header from '../components/Header';
 
 const AllFarmerPage = () => {
   const [farmerData, setFarmerData] = useState({
@@ -542,7 +543,9 @@ Thank you for your business! 🙏`;
     }
 
     return (
+      
       <div className="mt-6">
+        
         <h3 className="text-xl font-semibold mb-4 text-gray-800">
           Bill History ({farmerData.bills.length} bills) - <span className="text-sm text-green-600">Most Recent First</span>
         </h3>
@@ -711,9 +714,12 @@ Thank you for your business! 🙏`;
         </div>
 
       {/* Bill Summary */}
+{/* Bill Summary - UPDATED with Vehicle Weight Totals + Binding Material */}
 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
   <h4 className="text-lg font-semibold mb-2 text-blue-800">Bill Summary</h4>
-  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+  
+  {/* First Row - Main Metrics */}
+  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
     <div className="bg-white p-3 rounded shadow">
       <p className="text-sm text-gray-600">Total Bills</p>
       <p className="text-xl font-bold text-blue-600">{farmerData.bills.length}</p>
@@ -741,7 +747,6 @@ Thank you for your business! 🙏`;
         ₹{farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.remaining_money || 0), 0).toFixed(2)}
       </p>
     </div>
-    {/* NEW: Total Sugarcane Weight Section */}
     <div className="bg-white p-3 rounded shadow">
       <p className="text-sm text-gray-600">Total Sugarcane Weight</p>
       <p className="text-xl font-bold text-orange-600">
@@ -749,8 +754,40 @@ Thank you for your business! 🙏`;
       </p>
     </div>
   </div>
+
+  {/* Second Row - NEW: Vehicle Weight Totals + Binding Material */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="bg-white p-3 rounded shadow border-l-4 border-l-purple-500">
+      <p className="text-sm text-gray-600">Total Empty Vehicle Weight</p>
+      <p className="text-xl font-bold text-purple-600">
+        {farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.empty_vehicle_weight || 0), 0).toFixed(2)} kg
+      </p>
+      <p className="text-xs text-purple-500 mt-1">
+        ({(farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.empty_vehicle_weight || 0), 0) / 1000).toFixed(3)} tons)
+      </p>
+    </div>
+    <div className="bg-white p-3 rounded shadow border-l-4 border-l-indigo-500">
+      <p className="text-sm text-gray-600">Total Filled Vehicle Weight</p>
+      <p className="text-xl font-bold text-indigo-600">
+        {farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.filled_vehicle_weight || 0), 0).toFixed(2)} kg
+      </p>
+      <p className="text-xs text-indigo-500 mt-1">
+        ({(farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.filled_vehicle_weight || 0), 0) / 1000).toFixed(3)} tons)
+      </p>
+    </div>
+    {/* NEW: Total Binding Material */}
+    <div className="bg-white p-3 rounded shadow border-l-4 border-l-yellow-500">
+      <p className="text-sm text-gray-600">Total Binding Material</p>
+      <p className="text-xl font-bold text-yellow-600">
+        {farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.binding_material || 0), 0).toFixed(2)} kg
+      </p>
+      <p className="text-xs text-yellow-500 mt-1">
+        ({(farmerData.bills.reduce((sum, bill) => sum + parseFloat(bill.binding_material || 0), 0) / 1000).toFixed(3)} tons)
+      </p>
+    </div>
+  </div>
 </div>
-</div>
+ </div>
     );
   };
 
