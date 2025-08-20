@@ -270,7 +270,6 @@ const AllSellerPage = () => {
       setBillToPrint(null);
 
       return dataUrl;
-
     } catch (error) {
       setShowImagePreview(false);
       setBillToPrint(null);
@@ -636,36 +635,87 @@ Thank you for your business! 🙏`;
           </table>
         </div>
 
+        {/* Enhanced Bill Summary with Weight Statistics */}
         <div className="mt-6 p-4 bg-purple-50 rounded-lg">
-          <h4 className="text-lg font-semibold mb-2 text-purple-800">Bill Summary</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Bills</p>
-              <p className="text-xl font-bold text-purple-600">{sellerData.bills.length}</p>
+          <h4 className="text-lg font-semibold mb-4 text-purple-800">Complete Bill Summary</h4>
+          
+          {/* Financial Summary */}
+          <div className="mb-6">
+            <h5 className="text-md font-semibold mb-3 text-gray-700">💰 Financial Summary</h5>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white p-3 rounded shadow">
+                <p className="text-sm text-gray-600">Total Bills</p>
+                <p className="text-xl font-bold text-purple-600">{sellerData.bills.length}</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="text-sm text-gray-600">Recent Bills (7 days)</p>
+                <p className="text-xl font-bold text-green-600">
+                  {sellerData.bills.filter(bill => {
+                    const billDate = new Date(bill.createdAt || bill.updatedAt);
+                    const now = new Date();
+                    const daysDiff = Math.floor((now - billDate) / (1000 * 60 * 60 * 24));
+                    return daysDiff <= 7;
+                  }).length}
+                </p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="text-sm text-gray-600">Total Amount</p>
+                <p className="text-xl font-bold text-green-600">
+                  ₹{sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.totalBill || 0), 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="text-sm text-gray-600">Total Remaining</p>
+                <p className="text-xl font-bold text-red-600">
+                  ₹{sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.remaining_money || 0), 0).toFixed(2)}
+                </p>
+              </div>
             </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Recent Bills (7 days)</p>
-              <p className="text-xl font-bold text-green-600">
-                {sellerData.bills.filter(bill => {
-                  const billDate = new Date(bill.createdAt || bill.updatedAt);
-                  const now = new Date();
-                  const daysDiff = Math.floor((now - billDate) / (1000 * 60 * 60 * 24));
-                  return daysDiff <= 7;
-                }).length}
-              </p>
+          </div>
+
+          {/* Weight Summary */}
+          <div>
+            <h5 className="text-md font-semibold mb-3 text-gray-700">⚖️ Weight Summary (in kg)</h5>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white p-3 rounded shadow border-l-4 border-l-blue-500">
+                <p className="text-sm text-gray-600">Total Filled Weight</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.filled_vehicle_weight || 0), 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Vehicle + Sugarcane</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow border-l-4 border-l-orange-500">
+                <p className="text-sm text-gray-600">Total Empty Weight</p>
+                <p className="text-xl font-bold text-orange-600">
+                  {sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.empty_vehicle_weight || 0), 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Vehicle Only</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow border-l-4 border-l-yellow-500">
+                <p className="text-sm text-gray-600">Total Binding Material</p>
+                <p className="text-xl font-bold text-yellow-600">
+                  {sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.binding_material || 0), 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Ropes & Ties</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow border-l-4 border-l-green-500">
+                <p className="text-sm text-gray-600">Total Sugarcane Weight</p>
+                <p className="text-xl font-bold text-green-600">
+                  {sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.only_sugarcane_weight || 0), 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Net Sugarcane</p>
+              </div>
             </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Amount</p>
-              <p className="text-xl font-bold text-green-600">
-                ₹{sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.totalBill || 0), 0).toFixed(2)}
-              </p>
-            </div>
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-600">Total Remaining</p>
-              <p className="text-xl font-bold text-red-600">
-                ₹{sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.remaining_money || 0), 0).toFixed(2)}
-              </p>
-            </div>
+          </div>
+
+          {/* Weight Calculation Verification */}
+          <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <strong>Weight Calculation:</strong> Total Filled ({sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.filled_vehicle_weight || 0), 0).toFixed(2)} kg) - 
+              Total Empty ({sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.empty_vehicle_weight || 0), 0).toFixed(2)} kg) - 
+              Total Binding ({sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.binding_material || 0), 0).toFixed(2)} kg) = 
+              Total Sugarcane ({sellerData.bills.reduce((sum, bill) => sum + parseFloat(bill.only_sugarcane_weight || 0), 0).toFixed(2)} kg)
+            </p>
           </div>
         </div>
       </div>
