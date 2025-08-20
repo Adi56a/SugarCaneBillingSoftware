@@ -53,21 +53,31 @@ const SellerBillCreation = () => {
     fetchAllSellers();
   }, []);
 
-  // Auto-calculation logic
+  // Modified Auto-calculation logic with binding material auto-calculation
   useEffect(() => {
     const filledWeight = parseFloat(formData.filled_vehicle_weight) || 0;
     const emptyWeight = parseFloat(formData.empty_vehicle_weight) || 0;
-    const bindingMaterial = parseFloat(formData.binding_material) || 0;
     const rate = parseFloat(formData.sugarcane_rate) || 0;
     const takenMoney = parseFloat(formData.taken_money) || 0;
 
+    // Calculate gross sugarcane weight (filled - empty)
     const grossSugarcaneWeight = filledWeight - emptyWeight;
+    
+    // Auto-calculate binding material as 1% of gross sugarcane weight
+    const bindingMaterial = grossSugarcaneWeight > 0 ? (grossSugarcaneWeight * 0.01) : 0;
+    
+    // Calculate net sugarcane weight (gross - binding)
     const netSugarcaneWeight = grossSugarcaneWeight - bindingMaterial;
+    
+    // Calculate total bill
     const totalBill = netSugarcaneWeight * rate;
+    
+    // Calculate remaining money
     const remainingMoney = totalBill - takenMoney;
 
     setFormData(prev => ({
       ...prev,
+      binding_material: bindingMaterial > 0 ? bindingMaterial.toFixed(2) : '',
       only_sugarcane_weight: netSugarcaneWeight > 0 ? netSugarcaneWeight.toFixed(2) : '',
       totalBill: totalBill > 0 ? totalBill.toFixed(2) : '',
       remaining_money: remainingMoney !== 0 && !isNaN(remainingMoney) ? remainingMoney.toFixed(2) : ''
@@ -75,7 +85,6 @@ const SellerBillCreation = () => {
   }, [
     formData.filled_vehicle_weight,
     formData.empty_vehicle_weight,
-    formData.binding_material,
     formData.sugarcane_rate,
     formData.taken_money
   ]);
@@ -170,11 +179,38 @@ const SellerBillCreation = () => {
     if (name === 'seller_number') {
       handleSellerNumberChange(e);
     } else {
-      if (['only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(name)) {
+      // Prevent manual editing of auto-calculated fields
+      if (['only_sugarcane_weight', 'totalBill', 'remaining_money', 'binding_material'].includes(name)) {
         return;
       }
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Function to convert empty strings to 0 for numeric fields
+  const sanitizeFormData = (data) => {
+    const numericFields = [
+      'filled_vehicle_weight',
+      'empty_vehicle_weight',
+      'binding_material',
+      'only_sugarcane_weight',
+      'sugarcane_rate',
+      'totalBill',
+      'taken_money',
+      'remaining_money'
+    ];
+
+    const sanitizedData = { ...data };
+    
+    numericFields.forEach(field => {
+      if (sanitizedData[field] === '' || sanitizedData[field] === null || sanitizedData[field] === undefined) {
+        sanitizedData[field] = 0;
+      } else {
+        sanitizedData[field] = parseFloat(sanitizedData[field]) || 0;
+      }
+    });
+
+    return sanitizedData;
   };
 
   const handleSubmit = async (e) => {
@@ -204,13 +240,16 @@ const SellerBillCreation = () => {
         ? 'http://localhost:5000/api/sellerbill/create-bill' 
         : 'https://sugarcanebillingsoftware.onrender.com/api/sellerbill/create-bill';
 
+      // Sanitize form data to ensure no empty strings are sent
+      const sanitizedFormData = sanitizeFormData(formData);
+
       const response = await fetch(baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(sanitizedFormData),
       });
 
       if (response.ok) {
@@ -244,7 +283,7 @@ const SellerBillCreation = () => {
         setFilteredSellers([]);
 
         setTimeout(() => {
-          navigate('/all_seller'); // You can change this to your seller list page
+          navigate('/all_seller');
         }, 2000);
 
       } else {
@@ -361,7 +400,7 @@ const SellerBillCreation = () => {
   );
 
   const isAutoCalculated = (fieldName) => {
-    return ['only_sugarcane_weight', 'totalBill', 'remaining_money'].includes(fieldName);
+    return ['only_sugarcane_weight', 'totalBill', 'remaining_money', 'binding_material'].includes(fieldName);
   };
 
   const getFieldIcon = (fieldName) => {
@@ -372,7 +411,8 @@ const SellerBillCreation = () => {
       case 'vehicle_type': return <FaTruck className="text-orange-500" />;
       case 'filled_vehicle_weight':
       case 'empty_vehicle_weight':
-      case 'only_sugarcane_weight': return <FaWeightHanging className="text-red-500" />;
+      case 'only_sugarcane_weight':
+      case 'binding_material': return <FaWeightHanging className="text-red-500" />;
       case 'sugarcane_rate':
       case 'totalBill':
       case 'taken_money':
@@ -411,24 +451,28 @@ const SellerBillCreation = () => {
           <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mt-4 rounded-full"></div>
         </div>
 
-        {/* Calculation Info Box */}
+        {/* Updated Calculation Info Box */}
         <div className="mb-8 p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
           <div className="flex items-center mb-4">
             <FaCalculator className="text-purple-600 text-2xl mr-3" />
             <h3 className="text-xl font-bold text-gray-800">{currentLang.calculationLogic}</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="font-semibold text-blue-800 mb-1">Net Weight Calculation</div>
-              <div className="text-blue-700">Filled Weight - Empty Weight - Binding Material</div>
+              <div className="font-semibold text-blue-800 mb-1">Gross Weight</div>
+              <div className="text-blue-700">Filled Weight - Empty Weight</div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="font-semibold text-orange-800 mb-1">Binding Material (Auto)</div>
+              <div className="text-orange-700">1% of Gross Weight</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="font-semibold text-green-800 mb-1">Total Bill Calculation</div>
-              <div className="text-green-700">Net Weight × Sugarcane Rate</div>
+              <div className="font-semibold text-green-800 mb-1">Net Weight</div>
+              <div className="text-green-700">Gross Weight - Binding Material</div>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <div className="font-semibold text-purple-800 mb-1">Remaining Amount</div>
-              <div className="text-purple-700">Total Bill - Advance Payment</div>
+              <div className="font-semibold text-purple-800 mb-1">Total Bill</div>
+              <div className="text-purple-700">Net Weight × Rate</div>
             </div>
           </div>
         </div>
@@ -620,13 +664,16 @@ const SellerBillCreation = () => {
                           ? 'bg-purple-50 border-purple-300 cursor-not-allowed'
                           : 'border-gray-300'
                       }`}
-                      required={!isAutoCalculated(field.name)}
+                      required={!isAutoCalculated(field.name) && field.name !== 'taken_money' && field.name !== 'payment_type'}
                       disabled={isSubmitting || isAutoCalculated(field.name)}
                       placeholder={isAutoCalculated(field.name) ? 'Auto-calculated' : ''}
                     />
                     {isAutoCalculated(field.name) && (
                       <p className="text-xs text-purple-600 mt-1">
-                        This field is automatically calculated
+                        {field.name === 'binding_material' 
+                          ? 'Auto-calculated as 1% of gross sugarcane weight' 
+                          : 'This field is automatically calculated'
+                        }
                       </p>
                     )}
                   </div>
