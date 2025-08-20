@@ -3,8 +3,8 @@ import React from 'react';
 const translations = {
   en: {
     companyName: "Dhawle Gul Uddyog Samuha",
-    address: "Wadgaw Rasai, District Pune, pin - 412211",
-    contact: "Contact: Dhwale Brothers +91 70289 56076",
+    address: "Mu.Po. Wadgaw Rasai, Ta. Shirur, Dist. Pune, Pin Code: 412211",
+    contact: "Pro.Pa. Dhawle Brothers Mo. 9689786015, 7028956076",
     title: "Seller Sales Bill Sugarcane Weight Bill",
     date: "Date",
     sellerName: "Seller Name",
@@ -31,9 +31,9 @@ const translations = {
     currency: "₹"
   },
   mr: {
-    companyName: "धवाले गुळ उद्योग समूह",
-    address: "वडगाव रासाई, जिल्हा पुणे, पिन - ४१२२११",
-    contact: "संपर्क: धवले भानुदु +९१ ७०२८९ ५६०७६",
+    companyName: "ढवळे गुळ उद्योग समुह",
+    address: "मु.पो. वडगाव रासाई, ता. शिरुर, जि. पुणे, पिन कोडः ४१२२११",
+    contact: "प्रो.पा.ढवळे बंदु मो.९६८९७८६०१५,७०२८९५६०७६",
     title: "विक्रेता विक्री बिल ऊस वजन बिल",
     date: "तारीख",
     sellerName: "विक्रेत्याचे नाव",
@@ -106,10 +106,14 @@ const SellerBuyingBill = ({
           .no-print { display: none !important; }
           img.print-logo {
             display: block !important;
-            max-height: 50px !important;
-            width: auto !important;
+            max-height: 100px !important;
+            width: 90px !important;
             margin: 0 auto 8px auto;
+            border-radius: 50% !important;
           }
+        }
+        .bill-logo {
+          border-radius: 50%;
         }
       `}</style>
 
@@ -117,8 +121,8 @@ const SellerBuyingBill = ({
         <img
           src={logoSrc}
           alt="Logo"
-          className="print-logo mx-auto mb-2"
-          style={{ maxHeight: 50, width: "auto" }}
+          className="print-logo bill-logo mx-auto mb-2"
+          style={{ maxHeight: 90, width: "auto", borderRadius: "50%" }}
           onError={e => { e.target.style.display = 'none'; }}
         />
         <h1 className="text-lg font-bold text-orange-800 mb-1">{t.companyName}</h1>
