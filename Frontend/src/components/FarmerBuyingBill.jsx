@@ -3,8 +3,8 @@ import React from 'react';
 const translations = {
   en: {
     companyName: "Dhawle Gul Uddyog Samuha",
-    address: "Wadgaw Rasai, District Pune, pin - 412211",
-    contact: "Contact: Dhwale Brothers +91 70289 56076",
+    address: "Mun.Po. Wadgaw Rasai, Ta. Shirur, Dist. Pune, Pin Code: 412211",
+    contact: "Contact: Pro.Pa.Dhwale Brothers Mob.9689786015, 7028956076",
     title: "Buying Bill Sugarcane Weight Bill",
     date: "Date",
     farmerName: "Farmer Name",
@@ -31,9 +31,9 @@ const translations = {
     currency: "₹"
   },
   mr: {
-    companyName: "ढवळे गुळ उद्योग समूह",
-    address: "वडगाव रासाई, जिल्हा पुणे, पिन - ४१२२११",
-    contact: "संपर्क: धवले भानुदु +९१ ७०२८९ ५६०७६",
+    companyName: "ढवळे गुळ उद्योग समुह",
+    address: "मु.पो. वडगाव रासाई, ता. शिरुर, जि. पुणे, पिन कोडः ४१२२११",
+    contact: "संपर्क: प्रो.पा.ढवळे बंदु मो.९६८९७८६०१५,७०२८९५६०७६",
     title: "खरेदी बिल शेतकरी ऊस वजन बिल",
     date: "तारीख",
     farmerName: "शेतकऱ्याचे नाव",
@@ -42,7 +42,7 @@ const translations = {
     sugarcaneRate: "ऊसाचा दर",
     vehicleType: "वाहन प्रकार",
     driverName: "चालकाचे नाव",
-    cutter: " मुकादमाचे नाव",
+    cutter: "मुकादमाचे नाव",
     firs_column: [
       "भरलेल्या ऊसासह वाहनाचे वजन",
       "रिकाम्या वाहनाचे वजन",
@@ -106,8 +106,11 @@ const FarmerBuyingBill = ({
           .no-print { display: none !important; }
           img.print-logo {
             display: block !important;
-            max-height: 50px !important;
-            width: auto !important;
+            max-height: 100px !important;
+            width: 100px !important;
+            height: 100px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
             margin: 0 auto 8px auto;
           }
         }
@@ -119,7 +122,13 @@ const FarmerBuyingBill = ({
           src={logoSrc}
           alt="Logo"
           className="print-logo mx-auto mb-2"
-          style={{ maxHeight: 50, width: "auto" }}
+          style={{ 
+            maxHeight: 50, 
+            width: 50, 
+            height: 50, 
+            borderRadius: "50%",
+            objectFit: "cover"
+          }}
           onError={e => { e.target.style.display = 'none'; }}
         />
         <h1 className="text-lg font-bold text-blue-800 mb-1">{t.companyName}</h1>
