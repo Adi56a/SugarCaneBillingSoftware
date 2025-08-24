@@ -72,7 +72,7 @@ const Register = () => {
     try {
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/admin/register' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/admin/register';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/admin/register';
 
       const response = await fetch(baseUrl, {
         method: 'POST',
