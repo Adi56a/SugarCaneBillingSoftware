@@ -96,7 +96,7 @@ const SellerBillCreation = () => {
 
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/seller/all' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/seller/all';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/seller/all';
 
       const response = await fetch(baseUrl, {
         headers: {
@@ -238,7 +238,7 @@ const SellerBillCreation = () => {
 
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/sellerbill/create-bill' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/sellerbill/create-bill';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/sellerbill/create-bill';
 
       // Sanitize form data to ensure no empty strings are sent
       const sanitizedFormData = sanitizeFormData(formData);
