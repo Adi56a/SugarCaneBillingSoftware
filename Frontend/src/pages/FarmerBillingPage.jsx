@@ -93,7 +93,7 @@ const autoBindingMaterial = grossSugarcaneWeight > 0 ? grossSugarcaneWeight * 0.
       const token = localStorage.getItem('authToken');
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/bill/total-sugarcane-weight' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/bill/total-sugarcane-weight';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/bill/total-sugarcane-weight';
 
       const response = await fetch(baseUrl, {
         headers: {
@@ -117,7 +117,7 @@ const autoBindingMaterial = grossSugarcaneWeight > 0 ? grossSugarcaneWeight * 0.
 
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/farmer/all' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/farmer/all';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/farmer/all';
 
       const response = await fetch(baseUrl, {
         headers: {
@@ -299,7 +299,7 @@ const autoBindingMaterial = grossSugarcaneWeight > 0 ? grossSugarcaneWeight * 0.
   try {
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000/api/bill/create' 
-      : 'https://sugarcanebillingsoftware.onrender.com/api/bill/create';
+      : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/bill/create';
 
     const response = await fetch(baseUrl, {
       method: 'POST',

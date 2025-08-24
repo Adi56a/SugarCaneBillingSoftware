@@ -49,7 +49,7 @@ const AllSellerPage = () => {
         const token = localStorage.getItem('authToken');
         const baseUrl = process.env.NODE_ENV === 'development' 
           ? 'http://localhost:5000/api/seller/all' 
-          : 'https://sugarcanebillingsoftware.onrender.com/api/seller/all';
+          : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/seller/all';
 
         const response = await fetch(baseUrl, {
           headers: {
@@ -174,7 +174,7 @@ const AllSellerPage = () => {
           const token = localStorage.getItem('authToken');
           const baseUrl = process.env.NODE_ENV === 'development' 
             ? `http://localhost:5000/api/seller/${selectedSellerId}` 
-            : `https://sugarcanebillingsoftware.onrender.com/api/seller/${selectedSellerId}`;
+            : `https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/seller/${selectedSellerId}`;
 
           const response = await fetch(baseUrl, {
             headers: {
@@ -300,7 +300,7 @@ const AllSellerPage = () => {
       const token = localStorage.getItem('authToken');
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/upload' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/upload';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/upload';
 
       const response = await fetch(baseUrl, {
         method: 'POST',
@@ -412,7 +412,7 @@ Thank you for your business! 🙏`;
       const token = localStorage.getItem('authToken');
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/sellerbill/delete' 
-        : 'https://sugarcanebillingsoftware.onrender.com/api/sellerbill/delete';
+        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/sellerbill/delete';
 
       const response = await fetch(`${baseUrl}/${billId}`, {
         method: 'DELETE',
