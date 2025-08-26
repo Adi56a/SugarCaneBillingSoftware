@@ -124,7 +124,7 @@ const UpdateFarmerPage = () => {
   const getApiUrl = (endpoint) => {
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5000' 
-      : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws';
+      : 'https://gpckvdmnijhbdwvcmy5u5ul2yy0vzjgc.lambda-url.ap-south-1.on.aws';
     return `${baseUrl}${endpoint}`;
   };
 

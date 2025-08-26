@@ -152,7 +152,7 @@ const RegisterSeller = () => {
       // Dynamically set the URL based on the environment
       const baseUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5000/api/seller/register' 
-        : 'https://ltkpt3jvkqurdf3vh7gq37cgby0adqsm.lambda-url.ap-south-1.on.aws/api/seller/register'; // Replace with your actual production URL
+        : 'https://gpckvdmnijhbdwvcmy5u5ul2yy0vzjgc.lambda-url.ap-south-1.on.aws/api/seller/register'; // Replace with your actual production URL
 
       const response = await fetch(baseUrl, {
         method: 'POST',
