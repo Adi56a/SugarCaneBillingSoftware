@@ -32,7 +32,7 @@ const Header = () => {
 
   const translations = {
     en: {
-      brandName: "Dhawle Sugar Mill",
+      brandName: "G7 Sugar Limited",
       home: "Home",
       
       // Farmer Section
@@ -56,7 +56,7 @@ const Header = () => {
       profile: "Profile"
     },
     mr: {
-      brandName: "ढवळे गुळ उद्योग समूह",
+      brandName: "G7 Sugar Limited",
       home: "होम",
       
       // Farmer Section
