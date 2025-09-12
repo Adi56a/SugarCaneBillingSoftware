@@ -34,7 +34,7 @@ const Home = () => {
 
   const translations = {
     en: {
-      welcome: 'G7 Sugar Limited',
+      welcome: 'Dhawale Jaggery Industry Group',
       subtitle: 'Streamline your billing and farmer management processes',
       selectOption: 'Choose Your Action',
       
@@ -70,7 +70,7 @@ const Home = () => {
       quickActions: 'Quick Actions'
     },
     mr: {
-      welcome: 'G7 Sugar Limited',
+      welcome: 'ढवळे गुळ उद्योग समूह',
       subtitle: 'आपले बिलिंग आणि शेतकरी व्यवस्थापन प्रक्रिया सुव्यवस्थित करा',
       selectOption: 'आपली कृती निवडा',
       
@@ -345,7 +345,7 @@ const Home = () => {
                   <div className="relative w-60 h-50 bg-white rounded-3xl shadow-2xl p-4 transform hover:rotate-6 transition-transform duration-500 border border-white border-opacity-50 backdrop-blur-sm">
                     {!logoError ? (
                       <img
-                        src={`/logo5.png`}
+                        src={`/bill_logo.jpg`}
                         alt="Company Logo"
                         className="w-full h-full object-contain rounded-2xl"
                         onError={() => setLogoError(true)}
