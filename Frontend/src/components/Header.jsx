@@ -32,7 +32,7 @@ const Header = () => {
 
   const translations = {
     en: {
-      brandName: "G7 Sugar Limited",
+      brandName: "Dhavale Jaggery Industry Group",
       home: "Home",
       
       // Farmer Section
@@ -56,7 +56,7 @@ const Header = () => {
       profile: "Profile"
     },
     mr: {
-      brandName: "G7 Sugar Limited",
+      brandName: "Dhavale Jaggery Industry Group",
       home: "होम",
       
       // Farmer Section
@@ -235,12 +235,12 @@ const Header = () => {
                   >
                     {t.login}
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/register"
                     className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     {t.signup}
-                  </Link>
+                  </Link> */}
                 </>
               ) : (
                 <div className="flex items-center space-x-3">

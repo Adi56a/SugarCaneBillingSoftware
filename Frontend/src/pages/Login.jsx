@@ -268,7 +268,7 @@ const Login = () => {
             </form>
 
             {/* Footer Links */}
-            <div className="mt-8 text-center">
+            {/* <div className="mt-8 text-center">
               <p className="text-gray-600">
                 {t.noAccount}{' '}
                 <Link
@@ -278,7 +278,7 @@ const Login = () => {
                   {t.signUp}
                 </Link>
               </p>
-            </div>
+            </div> */}
 
             {/* Security Badge */}
             <div className="mt-6 flex items-center justify-center space-x-2 text-sm text-gray-500">
